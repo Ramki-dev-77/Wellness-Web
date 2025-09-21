@@ -1,0 +1,31 @@
+fhir:
+  base-url: http://localhost:8081/fhir
+
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/migrant_health
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  fhir:
+    base-url: http://localhost:8080/fhir
+    connect-timeout-ms: 10000
+    socket-timeout-ms: 15000
+  security:
+    jwt:
+      secret: "change-me-demo-secret"
+      expiry-minutes: 60
+  qr:
+    enc-secret: "16bytessecretkey" # demo AES key
+    ttl-seconds: 300

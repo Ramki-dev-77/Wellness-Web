@@ -1,0 +1,19 @@
+const DUMMY_USERS = {
+  migrant: {
+    id: "12345678901234", // 14-digit ABHA ID
+    phone: "9876543210",
+    password: "migrant123"
+  },
+  doctor: {
+    id: " ", // 8-character Health Professional ID
+    email: "doctor@example.com",
+    password: "doctor123",
+    name: "Dr. John Smith"
+  },
+  health: {
+    id: "HLT67890", // 8-character Health Professional ID
+    email: "health@example.com", 
+    password: "health123",
+    name: "Health Officer Jane"
+  }
+};
