@@ -17,3 +17,16 @@ const DUMMY_USERS = {
     name: "Health Officer Jane"
   }
 };
+
+
+👨‍⚕️ Doctor Demo Accounts
+
+ID: DOC001 | Password: doctor123 | Dr. John Smith (Cardiology)
+ID: DOC002 | Password: doctor456 | Dr. Sarah Johnson (Pediatrics)
+ID: DOC003 | Password: doctor789 | Dr. Michael Chen (General Medicine)
+
+🏥 Health Official Demo Accounts
+
+ID: OFF001 | Password: health123 | Alice Brown (Public Health)
+ID: OFF002 | Password: health456 | Robert Wilson (Disease Control)
+ID: OFF003 | Password: health789 | Maria Garcia (Community Health)

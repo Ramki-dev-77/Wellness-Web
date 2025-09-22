@@ -43,11 +43,140 @@ const translations = {
     language: "Language",
     english: "English",
     malayalam: "മലയാളം",
+    tamil: "தமிழ്",
+    hindi: "हिंदी"
+  },
+  ta: {
+    signIn: "உள்நுழைய",
+    createAccount: "கணக்கை உருவாக்கவும்",
+    back: "திரும்பு",
+    migrant: "புலம்பெயர்ந்தவர்",
+    doctor: "மருத்துவர்",
+    healthOfficial: "சுகாதார அதிகாரி",
+    abhaId: "ABHA அடையாள எண்",
+    healthProfessionalId: "சுகாதார தொழில்முறை அடையாள எண்",
+    fullName: "முழு பெயர்",
+    phoneNumber: "தொலைபேசி எண்",
+    email: "மின்னஞ்சல்",
+    password: "கடவுச்சொல்",
+    confirmPassword: "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+    signUp: "பதிவு செய்யவும்",
+    forgotPassword: "கடவுச்சொல்லை மறந்துவிட்டீர்களா?",
+    dontHaveHealthId: "சுகாதார தொழில்முறை அடையாள எண் இல்லையா?",
+    dontHaveAbhaId: "ABHA அடையாள எண் இல்லையா?",
+    createOne: "ஒன்றை உருவாக்கவும்",
+    alreadyHaveAccount: "ஏற்கனவே கணக்கு உள்ளதா?",
+    dontHaveAccount: "கணக்கு இல்லையா?",
+    verifyOtp: "OTP ஐ சரிபார்க்கவும்",
+    enterOtp: "உங்கள் மின்னஞ்சல்/தொலைபேசிக்கு அனுப்பப்பட்ட OTP ஐ உள்ளிடவும்",
+    backToLogin: "உள்நுழைதலுக்குத் திரும்பவும்",
+    selectRole: "முதலில் ஒரு பாத்திரத்தை தேர்ந்தெடுக்கவும்",
+    passwordsDontMatch: "கடவுச்சொற்கள் பொருந்தவில்லை",
+    passwordLength: "கடவுச்சொல் குறைந்தது 6 எழுத்துகளாக இருக்க வேண்டும்",
+    registrationSuccess: "பதிவு வெற்றிகரமாக முடிந்தது! இப்போது உள்நுழையலாம்.",
+    invalidRole: "தவறான பாத்திரம் தேர்ந்தெடுக்கப்பட்டது",
+    invalidCredentials: "தவறான அங்கீகார விவரங்கள். தயவுசெய்து சரிபார்க்கவும்.",
+    loginSuccess: "உள்நுழைவு வெற்றிகரமானது! வழிமாற்றுகிறது...",
+    validAbhaId: "சரியான 14-இலக்க ABHA அடையாள எண்ணை உள்ளிடவும்",
+    validHealthId: "சரியான 8-எழுத்து சுகாதார தொழில்முறை அடையாள எண்ணை உள்ளிடவும்",
+    language: "மொழி",
+    english: "ஆங்கிலம்",
+    malayalam: "മലയാളം",
+    tamil: "தமிழ்",
+    hindi: "हिंदी"
+  },
+  ml: {
+    signIn: "സൈൻ ഇൻ",
+    createAccount: "അക്കൗണ്ട് സൃഷ്ടിക്കുക",
+    back: "മടങ്ങുക",
+    migrant: "കുടിയേറ്റക്കാരൻ",
+    doctor: "ഡോക്ടർ",
+    healthOfficial: "ആരോഗ്യ ഉദ്യോഗസ്ഥൻ",
+    abhaId: "ABHA ഐഡി",
+    healthProfessionalId: "ആരോഗ്യ പ്രൊഫഷണൽ ഐഡി",
+    fullName: "പൂർണ്ണ നാമം",
+    phoneNumber: "ഫോൺ നമ്പർ",
+    email: "ഇമെയിൽ",
+    password: "പാസ്‌വേഡ്",
+    confirmPassword: "പാസ്‌വേഡ് സ്ഥിരീകരിക്കുക",
+    signUp: "സൈൻ അപ്പ്",
+    forgotPassword: "പാസ്‌വേഡ് മറന്നോ?",
+    dontHaveHealthId: "ആരോഗ്യ പ്രൊഫഷണൽ ഐഡി ഇല്ലേ?",
+    dontHaveAbhaId: "ABHA ഐഡി ഇല്ലേ?",
+    createOne: "ഒരെണ്ണം സൃഷ്ടിക്കുക",
+    alreadyHaveAccount: "ഇതിനകം അക്കൗണ്ടുണ്ടോ?",
+    dontHaveAccount: "അക്കൗണ്ട് ഇല്ലേ?",
+    verifyOtp: "OTP പരിശോധിക്കുക",
+    enterOtp: "നിങ്ങളുടെ ഇമെയിൽ/ഫോണിലേക്ക് അയച്ച OTP നൽകുക",
+    backToLogin: "ലോഗിനിലേക്ക് മടങ്ങുക",
+    selectRole: "ആദ്യം ഒരു റോൾ തിരഞ്ഞെടുക്കുക",
+    passwordsDontMatch: "പാസ്‌വേഡുകൾ പൊരുത്തപ്പെടുന്നില്ല",
+    passwordLength: "പാസ്‌വേഡ് കുറഞ്ഞത് 6 അക്ഷരങ്ങൾ ഉണ്ടായിരിക്കണം",
+    registrationSuccess: "രജിസ്ട്രേഷൻ വിജയകരമാണ്! ഇപ്പോൾ സൈൻ ഇൻ ചെയ്യാം.",
+    invalidRole: "അസാധുവായ റോൾ തിരഞ്ഞെടുത്തു",
+    invalidCredentials: "അസാധുവായ ക്രെഡൻഷ്യലുകൾ. ദയവായി പരിശോധിക്കുക.",
+    loginSuccess: "ലോഗിൻ വിജയകരമായി! റീഡയറക്ട് ചെയ്യുന്നു...",
+    validAbhaId: "സാധുവായ 14-അക്ക ABHA ഐഡി നൽകുക",
+    validHealthId: "സാധുവായ 8-അക്ഷര ആരോഗ്യ പ്രൊഫഷണൽ ഐഡി നൽകുക",
+    language: "ഭാഷ",
+    english: "ഇംഗ്ലീഷ്",
+    malayalam: "മലയാളം",
+    tamil: "തമിഴ്",
+    hindi: "हिंदी"
+  },
+  hi: {
+    signIn: "साइन इन",
+    createAccount: "खाता बनाएं",
+    back: "वापस",
+    migrant: "प्रवासी",
+    doctor: "डॉक्टर",
+    healthOfficial: "स्वास्थ्य अधिकारी",
+    abhaId: "ABHA आईडी",
+    healthProfessionalId: "स्वास्थ्य पेशेवर आईडी",
+    fullName: "पूरा नाम",
+    phoneNumber: "फोन नंबर",
+    email: "ईमेल",
+    password: "पासवर्ड",
+    confirmPassword: "पासवर्ड की पुष्टि करें",
+    signUp: "साइन अप",
+    forgotPassword: "पासवर्ड भूल गए?",
+    dontHaveHealthId: "स्वास्थ्य पेशेवर आईडी नहीं है?",
+    dontHaveAbhaId: "ABHA आईडी नहीं है?",
+    createOne: "एक बनाएं",
+    alreadyHaveAccount: "पहले से खाता है?",
+    dontHaveAccount: "खाता नहीं है?",
+    verifyOtp: "OTP सत्यापित करें",
+    enterOtp: "अपने ईमेल/फोन पर भेजा गया OTP दर्ज करें",
+    backToLogin: "लॉगिन पर वापस जाएं",
+    selectRole: "पहले एक भूमिका चुनें",
+    passwordsDontMatch: "पासवर्ड मेल नहीं खाते",
+    passwordLength: "पासवर्ड कम से कम 6 अक्षर का होना चाहिए",
+    registrationSuccess: "पंजीकरण सफल! अब आप साइन इन कर सकते हैं।",
+    invalidRole: "अमान्य भूमिका चुनी गई",
+    invalidCredentials: "अमान्य क्रेडेंशियल। कृपया जांचें।",
+    loginSuccess: "लॉगिन सफल! रीडायरेक्ट कर रहे हैं...",
+    validAbhaId: "कृपया एक वैध 14-अंकीय ABHA आईडी दर्ज करें",
+    validHealthId: "कृपया एक वैध 8-अक्षर स्वास्थ्य पेशेवर आईडी दर्ज करें",
+    language: "भाषा",
+    english: "अंग्रेजी",
+    malayalam: "മലയാളം",
     tamil: "தமിழ்",
     hindi: "हिंदी"
   }
-  // Add your other language translations here if needed
 };
+
+// Dummy Data for Authentication
+let DUMMY_DOCTORS = [
+  { id: "DOC001", password: "doctor123", name: "Dr. John Smith", specialization: "Cardiology" },
+  { id: "DOC002", password: "doctor456", name: "Dr. Sarah Johnson", specialization: "Pediatrics" },
+  { id: "DOC003", password: "doctor789", name: "Dr. Michael Chen", specialization: "General Medicine" }
+];
+
+let DUMMY_HEALTH_OFFICIALS = [
+  { id: "OFF001", password: "health123", name: "Alice Brown", department: "Public Health" },
+  { id: "OFF002", password: "health456", name: "Robert Wilson", department: "Disease Control" },
+  { id: "OFF003", password: "health789", name: "Maria Garcia", department: "Community Health" }
+];
 
 // Safe translation function
 const getTranslation = (language, key) => {
@@ -258,7 +387,7 @@ function OTPVerification({ onBack, email, role, onSuccess }) {
   return (
     <div className="form-container">
       <div className="form">
-        <h2>{t('verifyOtp')}</h2>
+        {/* <h2>{t('verifyOtp')}</h2>
         <p className="muted">{t('enterOtp')}</p>
         <p className="muted">Sent to: <strong>{email}</strong></p>
         
@@ -322,7 +451,7 @@ function OTPVerification({ onBack, email, role, onSuccess }) {
           }}
         >
           {loading ? 'Verifying...' : t('verifyOtp')}
-        </button>
+        </button> */}
         
         <button 
           type="button" 
@@ -337,7 +466,7 @@ function OTPVerification({ onBack, email, role, onSuccess }) {
           {t('backToLogin')}
         </button>
         
-        <div style={{
+        {/* <div style={{
           backgroundColor: '#fef3c7',
           border: '1px solid #fbbf24',
           borderRadius: '6px',
@@ -349,7 +478,7 @@ function OTPVerification({ onBack, email, role, onSuccess }) {
         }}>
           💡 <strong>Demo OTP:</strong> 123456<br />
           <small>Check your email for the actual OTP, or use 123456 for testing</small>
-        </div>
+        </div> */}
       </div>
     </div>
   );
@@ -357,7 +486,7 @@ function OTPVerification({ onBack, email, role, onSuccess }) {
 
 function LoginForm({ setIsSignUpActive }) {
   const { language } = useLanguage();
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState('migrant'); // Set default to migrant
   const [showOTP, setShowOTP] = useState(false);
   const [otpEmail, setOtpEmail] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -450,7 +579,64 @@ function LoginForm({ setIsSignUpActive }) {
           setError(t('passwordLength'));
           return;
         }
+        
+        // Generate new ID for the user
+        let newId;
+        let newUser;
+        
+        if (selectedRole === 'doctor') {
+          // Check if ID already exists
+          if (formData.id && DUMMY_DOCTORS.find(u => u.id === formData.id)) {
+            setError('This Health Professional ID already exists. Please use a different ID.');
+            return;
+          }
+          
+          // Generate new doctor ID if not provided
+          newId = formData.id || `DOC${String(DUMMY_DOCTORS.length + 1).padStart(3, '0')}`;
+          
+          newUser = {
+            id: newId,
+            password: formData.password,
+            name: formData.name,
+            specialization: "General Practice" // Default specialization
+          };
+          
+          // Add to dummy data
+          DUMMY_DOCTORS.push(newUser);
+          
+        } else if (selectedRole === 'health') {
+          // Check if ID already exists
+          if (formData.id && DUMMY_HEALTH_OFFICIALS.find(u => u.id === formData.id)) {
+            setError('This Health Professional ID already exists. Please use a different ID.');
+            return;
+          }
+          
+          // Generate new health official ID if not provided
+          newId = formData.id || `OFF${String(DUMMY_HEALTH_OFFICIALS.length + 1).padStart(3, '0')}`;
+          
+          newUser = {
+            id: newId,
+            password: formData.password,
+            name: formData.name,
+            department: "General Health" // Default department
+          };
+          
+          // Add to dummy data
+          DUMMY_HEALTH_OFFICIALS.push(newUser);
+        }
+        
+        setSuccess(`✅ Registration successful! Your ID is: ${newId}. You can now sign in with these credentials.`);
+        setIsSignUp(false);
+        setFormData({
+          id: '',
+          name: '',
+          emailOrPhone: '',
+          password: '',
+          confirmPassword: ''
+        });
+        return;
       }
+      
       setSuccess(t('registrationSuccess'));
       setIsSignUp(false);
       setFormData({
@@ -481,47 +667,40 @@ function LoginForm({ setIsSignUpActive }) {
           }
         } 
         else if (selectedRole === 'doctor' || selectedRole === 'health') {
-          // Validate email field is filled
-          if (!formData.emailOrPhone || !formData.emailOrPhone.includes('@')) {
-            setError('Please enter a valid email address');
-            return;
-          }
+          // Check dummy data for authentication
+          const dummyData = selectedRole === 'doctor' ? DUMMY_DOCTORS : DUMMY_HEALTH_OFFICIALS;
+          const user = dummyData.find(u => u.id === formData.id && u.password === formData.password);
           
-          // Send OTP to email - always proceed to OTP screen
-          try {
-            const emailService = selectedRole === 'doctor' 
-              ? authAPI.doctorEmailInput 
-              : authAPI.officialEmailInput;
+          if (user) {
+            // Create token and user data
+            const token = `demo-token-${user.id}`;
+            const userData = {
+              name: user.name,
+              role: selectedRole.toUpperCase(),
+              username: user.id,
+              specialization: user.specialization,
+              department: user.department
+            };
             
-            const response = await emailService(formData.emailOrPhone);
+            // Store in session
+            sessionStorage.setItem('authToken', token);
+            sessionStorage.setItem('authUser', JSON.stringify(userData));
             
-            // Always proceed to OTP screen regardless of response
-            setOtpEmail(formData.emailOrPhone);
-            setShowOTP(true);
-            
-            if (response && response.success) {
-              setSuccess('✅ OTP sent to your email! Check your inbox.');
-            } else {
-              setSuccess('📧 OTP screen loaded. Use 123456 for demo or check your email.');
-            }
-          } catch (error) {
-            // Even if API fails, proceed to OTP for demo purposes
-            setOtpEmail(formData.emailOrPhone);
-            setShowOTP(true);
-            setSuccess('📧 OTP screen loaded. Use 123456 for demo testing.');
+            setSuccess(`✅ Welcome ${user.name}! Redirecting to dashboard...`);
+            setTimeout(() => {
+              if (selectedRole === 'doctor') {
+                navigate('/doctor');
+              } else {
+                navigate('/health');
+              }
+            }, 1500);
+          } else {
+            setError(t('invalidCredentials'));
           }
         }
       } catch (error) {
         console.error('Login error:', error);
-        
-        // For doctors/health officers, still proceed to OTP screen for demo
-        if (selectedRole === 'doctor' || selectedRole === 'health') {
-          setOtpEmail(formData.emailOrPhone);
-          setShowOTP(true);
-          setSuccess('📧 OTP screen loaded. Use 123456 for demo testing.');
-        } else {
-          setError('Login failed. Please check your connection and try again.');
-        }
+        setError('Login failed. Please check your connection and try again.');
       } finally {
         setLoading(false);
       }
@@ -604,7 +783,7 @@ function LoginForm({ setIsSignUpActive }) {
               placeholder={
                 selectedRole === 'migrant' 
                   ? t('abhaId') 
-                  : 'Health Professional ID (optional)'
+                  : t('healthProfessionalId')
               } 
               disabled={loading}
             />
@@ -622,48 +801,13 @@ function LoginForm({ setIsSignUpActive }) {
           />
         )}
 
-        <div className="input-group">
-          {selectedRole === 'migrant' ? (
-            <input 
-              type="text" 
-              required 
-              placeholder="OTP (use 123456)" 
-              value={formData.emailOrPhone}
-              onChange={(e) => setFormData({...formData, emailOrPhone: e.target.value})}
-              disabled={loading}
-            />
-          ) : (
-            <input 
-              type="email" 
-              required 
-              placeholder={t('email') + ' (required for OTP)'}
-              value={formData.emailOrPhone}
-              onChange={(e) => setFormData({...formData, emailOrPhone: e.target.value})}
-              disabled={loading}
-              style={{
-                borderColor: selectedRole !== 'migrant' ? '#3b82f6' : '#d1d5db',
-                borderWidth: selectedRole !== 'migrant' ? '2px' : '1px'
-              }}
-            />
-          )}
-        </div>
-        
         <input 
           type="password" 
-          placeholder={
-            selectedRole === 'migrant' 
-              ? "Password (use 123456)" 
-              : selectedRole === 'doctor' || selectedRole === 'health'
-                ? "Password (optional - email OTP is primary method)"
-                : t('password')
-          }
-          required={selectedRole === 'migrant'}
+          placeholder={t('password')}
+          required
           value={formData.password}
           onChange={(e) => setFormData({...formData, password: e.target.value})}
           disabled={loading}
-          style={{
-            opacity: (selectedRole === 'doctor' || selectedRole === 'health') ? '0.6' : '1'
-          }}
         />
         
         {isSignUp && selectedRole !== 'migrant' && (
@@ -688,12 +832,12 @@ function LoginForm({ setIsSignUpActive }) {
               ? 'Loading...' 
               : selectedRole === 'migrant'
                 ? (isSignUp ? t('signUp') : t('signIn'))
-                : (isSignUp ? t('signUp') : 'Send OTP')
+                : (isSignUp ? t('signUp') : 'Sign In')
             }
           </button>
         </div>
 
-        {selectedRole === 'doctor' && !isSignUp && (
+        {/* {selectedRole === 'doctor' && !isSignUp && (
           <div style={{
             backgroundColor: '#eff6ff',
             border: '1px solid #bfdbfe',
@@ -709,9 +853,9 @@ function LoginForm({ setIsSignUpActive }) {
               <br /><strong>Demo OTP:</strong> 123456
             </p>
           </div>
-        )}
+        )} */}
 
-        {selectedRole === 'health' && !isSignUp && (
+        {/* {selectedRole === 'health' && !isSignUp && (
           <div style={{
             backgroundColor: '#eff6ff',
             border: '1px solid #bfdbfe',
@@ -727,7 +871,7 @@ function LoginForm({ setIsSignUpActive }) {
               <br /><strong>Demo OTP:</strong> 123456
             </p>
           </div>
-        )}
+        )} */}
 
         {selectedRole === 'migrant' ? (
           <p className="switch-text">
@@ -745,7 +889,7 @@ function LoginForm({ setIsSignUpActive }) {
           </p>
         )}
       </div>
-      <img src={logo} height={400} alt="WellnessWeb Logo" />
+      <img src={logo} height={450} className="wellness_logo" alt="WellnessWeb Logo" />
     </div>
   );
 }
@@ -753,7 +897,15 @@ function LoginForm({ setIsSignUpActive }) {
 function BubbleEffect() {
   return (
     <div className="bubble-container">
-      {/* Bubbles will be added via CSS animations */}
+      <div className="bubble"></div>
+      <div className="bubble"></div>
+      <div className="bubble"></div>
+      <div className="bubble"></div>
+      <div className="bubble"></div>
+      <div className="bubble"></div>
+      <div className="bubble"></div>
+      <div className="bubble"></div>
+      <div className="bubble"></div>
     </div>
   );
 }
