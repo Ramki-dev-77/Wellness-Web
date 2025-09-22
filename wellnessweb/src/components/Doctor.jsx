@@ -16,7 +16,7 @@ import {
   Plus
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-
+import QRScanner from "./QRScanner";
 // Doctor API service
 const doctorAPI = {
   getProfile: async () => {
@@ -450,80 +450,80 @@ export default function DoctorHome() {
   );
 
   // QR Scanner Component with backend integration
-  const QRScanner = () => (
-    <div style={{ padding: "2rem", backgroundColor: "#f8fafc", borderRadius: "12px", margin: "2rem auto", maxWidth: "600px" }}>
-      <h3 style={{ marginBottom: '1.5rem' }}>QR Code Scanner</h3>
+  // const QRScanner = () => (
+  //   <div style={{ padding: "2rem", backgroundColor: "#f8fafc", borderRadius: "12px", margin: "2rem auto", maxWidth: "600px" }}>
+  //     <h3 style={{ marginBottom: '1.5rem' }}>QR Code Scanner</h3>
       
-      {error.scan && <ErrorMessage message={error.scan} />}
+  //     {error.scan && <ErrorMessage message={error.scan} />}
       
-      <div style={{ marginBottom: '1.5rem' }}>
-        <textarea
-          value={qrInputData}
-          onChange={(e) => setQrInputData(e.target.value)}
-          placeholder={t('scanPlaceholder')}
-          style={{
-            width: '100%',
-            height: '100px',
-            padding: '0.75rem',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            fontSize: '0.875rem'
-          }}
-        />
-      </div>
+  //     <div style={{ marginBottom: '1.5rem' }}>
+  //       <textarea
+  //         value={qrInputData}
+  //         onChange={(e) => setQrInputData(e.target.value)}
+  //         placeholder={t('scanPlaceholder')}
+  //         style={{
+  //           width: '100%',
+  //           height: '100px',
+  //           padding: '0.75rem',
+  //           border: '1px solid #d1d5db',
+  //           borderRadius: '6px',
+  //           fontSize: '0.875rem'
+  //         }}
+  //       />
+  //     </div>
       
-      <button
-        onClick={handleQRScan}
-        disabled={loading.scan}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.75rem 1.5rem',
-          backgroundColor: loading.scan ? '#9ca3af' : '#3b82f6',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: loading.scan ? 'not-allowed' : 'pointer',
-          margin: '0 auto'
-        }}
-      >
-        {loading.scan ? <RefreshCw className="animate-spin" size={16} /> : <QrCode size={16} />}
-        {loading.scan ? t('loading') : t('scanButton')}
-      </button>
+  //     <button
+  //       onClick={handleQRScan}
+  //       disabled={loading.scan}
+  //       style={{
+  //         display: 'flex',
+  //         alignItems: 'center',
+  //         gap: '0.5rem',
+  //         padding: '0.75rem 1.5rem',
+  //         backgroundColor: loading.scan ? '#9ca3af' : '#3b82f6',
+  //         color: 'white',
+  //         border: 'none',
+  //         borderRadius: '6px',
+  //         cursor: loading.scan ? 'not-allowed' : 'pointer',
+  //         margin: '0 auto'
+  //       }}
+  //     >
+  //       {loading.scan ? <RefreshCw className="animate-spin" size={16} /> : <QrCode size={16} />}
+  //       {loading.scan ? t('loading') : t('scanButton')}
+  //     </button>
 
-      {scannedPatient && (
-        <div style={{
-          marginTop: '2rem',
-          padding: '1.5rem',
-          backgroundColor: '#f0fdf4',
-          border: '1px solid #bbf7d0',
-          borderRadius: '8px'
-        }}>
-          <h4 style={{ color: '#15803d', marginBottom: '1rem' }}>{t('scanSuccess')}</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-            <div>
-              <strong>Patient:</strong> {scannedPatient.patient?.name}
-            </div>
-            <div>
-              <strong>ABHA:</strong> {scannedPatient.patient?.abha}
-            </div>
-            <div>
-              <strong>Mobile:</strong> {scannedPatient.patient?.mobile}
-            </div>
-            <div>
-              <strong>Region:</strong> {scannedPatient.patient?.region}
-            </div>
-          </div>
-          {scannedPatient.healthRecords && (
-            <div style={{ marginTop: '1rem' }}>
-              <strong>Health Records Available:</strong> Yes
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+  //     {scannedPatient && (
+  //       <div style={{
+  //         marginTop: '2rem',
+  //         padding: '1.5rem',
+  //         backgroundColor: '#f0fdf4',
+  //         border: '1px solid #bbf7d0',
+  //         borderRadius: '8px'
+  //       }}>
+  //         <h4 style={{ color: '#15803d', marginBottom: '1rem' }}>{t('scanSuccess')}</h4>
+  //         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+  //           <div>
+  //             <strong>Patient:</strong> {scannedPatient.patient?.name}
+  //           </div>
+  //           <div>
+  //             <strong>ABHA:</strong> {scannedPatient.patient?.abha}
+  //           </div>
+  //           <div>
+  //             <strong>Mobile:</strong> {scannedPatient.patient?.mobile}
+  //           </div>
+  //           <div>
+  //             <strong>Region:</strong> {scannedPatient.patient?.region}
+  //           </div>
+  //         </div>
+  //         {scannedPatient.healthRecords && (
+  //           <div style={{ marginTop: '1rem' }}>
+  //             <strong>Health Records Available:</strong> Yes
+  //           </div>
+  //         )}
+  //       </div>
+  //     )}
+  //   </div>
+  // );
 
   // Observations/Vitals Component
   const VitalsSection = () => (
