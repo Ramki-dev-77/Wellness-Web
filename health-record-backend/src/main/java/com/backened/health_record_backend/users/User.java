@@ -1,8 +1,15 @@
 package com.backened.health_record_backend.users;
 
-import jakarta.persistence.*;
-import lombok.*;
-import org.hl7.fhir.utilities.settings.ServerDetailsPOJO;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
@@ -11,18 +18,35 @@ import org.hl7.fhir.utilities.settings.ServerDetailsPOJO;
 @AllArgsConstructor
 @Builder
 public class User {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true, nullable = false)
     private String username;
+
     private String name;
     private String mobile;
+
+    @Column(name = "email")
+    private String email;
+
     private String region;
+
     @Column(nullable = false)
     private String role;
+
+    @Column(name = "abha_number")
     private String abhaNumber;
+
+    @Column(name = "abha_address")
     private String abhaAddress;
+
+    @Column(name = "fhir_patient_id")
     private String fhirPatientId;
 
+    @Column(name = "healthpid")  // Make sure this matches your DB column exactly (case sensitive)
+    private String healthPid;
+
+    // Add any additional fields if needed
 }

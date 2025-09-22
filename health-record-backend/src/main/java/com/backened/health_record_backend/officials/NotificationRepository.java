@@ -1,11 +1,11 @@
 package com.backened.health_record_backend.officials;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
@@ -23,4 +23,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findAllActiveNotifications();
 
     long countByCreatedByAndActive(String createdBy, boolean active);
+
+    List<Notification> findByRegionAndActiveTrue(String region);
+
+    List<Notification> findByActiveTrueOrderByCreatedAtDesc();
+
+    List<Notification> findByCreatedBy(String createdBy);
 }

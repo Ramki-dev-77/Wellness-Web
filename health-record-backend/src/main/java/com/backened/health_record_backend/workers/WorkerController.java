@@ -1,35 +1,36 @@
-package com.backened.health_record_backend.workers;
+ package com.backened.health_record_backend.workers;
 
-import com.backened.health_record_backend.users.User;
-import com.backened.health_record_backend.users.UserService;
-import com.backened.health_record_backend.fhirmock.FhirService;
-import com.backened.health_record_backend.Qr.QrService;
-import com.backened.health_record_backend.officials.Notification;
-import com.backened.health_record_backend.officials.NotificationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.backened.health_record_backend.Qr.QrService;
+import com.backened.health_record_backend.fhirmock.FhirService;
+import com.backened.health_record_backend.officials.Notification;
+import com.backened.health_record_backend.officials.NotificationRepository;
+import com.backened.health_record_backend.users.User;
+import com.backened.health_record_backend.users.UserService;
+
 @RestController
 @RequestMapping("/workers")
-@CrossOrigin(origins = "http://localhost:3000") // Enable CORS for React frontend
+@CrossOrigin(origins = "http://localhost:3000")
 public class WorkerController {
 
-    @Autowired
     private final UserService userService;
-
-    @Autowired
     private final FhirService fhirService;
-
-    @Autowired
     private final QrService qrService;
-
-    @Autowired
     private final NotificationRepository notificationRepository;
 
-    // Constructor injection
+    @Autowired
     public WorkerController(UserService userService, FhirService fhirService, QrService qrService,
                             NotificationRepository notificationRepository) {
         this.userService = userService;
@@ -38,25 +39,15 @@ public class WorkerController {
         this.notificationRepository = notificationRepository;
     }
 
-    // ==================== AUTHENTICATION ====================
-
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         try {
-            // FIXED: Accept both 'abha' and 'abhaNumber' parameters from frontend
-            String abhaNumber = request.get("abhaNumber");  // Primary parameter from frontend
-            String abha = request.get("abha");              // Fallback parameter
+            String abhaNumber = request.get("abhaNumber");
+            String abha = request.get("abha");
             String otp = request.get("otp");
 
-            // Use whichever parameter was provided
             String workerAbha = abhaNumber != null ? abhaNumber : abha;
 
-            System.out.println("=== WORKER LOGIN REQUEST ===");
-            System.out.println("ABHA: " + workerAbha);
-            System.out.println("OTP: " + otp);
-            System.out.println("============================");
-
-            // Validate input parameters
             if (workerAbha == null || workerAbha.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
@@ -71,7 +62,6 @@ public class WorkerController {
                 ));
             }
 
-            // Mock OTP validation (always accept 123456 for demo)
             if (!"123456".equals(otp)) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
@@ -79,31 +69,22 @@ public class WorkerController {
                 ));
             }
 
-            // Find worker by ABHA number
-            User worker = userService.getByAbhaNumber(workerAbha);
+            User worker = userService.findByAbhaNumber(workerAbha);
 
             if (worker == null) {
-                System.err.println("ERROR: Worker not found with ABHA: " + workerAbha);
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
-                        "error", "Worker not found with ABHA: " + workerAbha + ". Please check your ABHA number."
+                        "error", "Worker not found with ABHA: " + workerAbha
                 ));
             }
 
-            System.out.println("Found worker: " + worker.getName() + ", Role: " + worker.getRole());
-
-            // Check if user role is WORKER
-            if (worker.getRole() == null || !"WORKER".equals(worker.getRole().toUpperCase())) {
-                System.err.println("ERROR: Invalid role for user. Expected: WORKER, Found: " + worker.getRole());
+            if (worker.getRole() == null || !"WORKER".equalsIgnoreCase(worker.getRole())) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
                         "error", "Invalid worker credentials. User role: " + worker.getRole()
                 ));
             }
 
-            System.out.println("✅ Worker login successful: " + worker.getName());
-
-            // Return successful login response
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "token", "demo-token-" + workerAbha,
@@ -119,17 +100,7 @@ public class WorkerController {
                     ),
                     "role", "WORKER"
             ));
-
-        } catch (RuntimeException e) {
-            System.err.println("RuntimeException in worker login: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "error", "Worker not found: " + e.getMessage()
-            ));
         } catch (Exception e) {
-            System.err.println("Unexpected error in worker login: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of(
                     "success", false,
                     "error", "Login failed: " + e.getMessage()
@@ -137,17 +108,13 @@ public class WorkerController {
         }
     }
 
-    // ==================== PROFILE MANAGEMENT ====================
-
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> fetchProfile(@RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
             String abha = token.replace("demo-token-", "");
 
-            System.out.println("Fetching profile for ABHA: " + abha);
-
-            User worker = userService.getByAbhaNumber(abha);
+            User worker = userService.findByAbhaNumber(abha);
 
             if (worker == null) {
                 return ResponseEntity.status(401).body(Map.of(
@@ -170,7 +137,6 @@ public class WorkerController {
                     )
             ));
         } catch (Exception e) {
-            System.err.println("Error fetching worker profile: " + e.getMessage());
             return ResponseEntity.status(500).body(Map.of(
                     "success", false,
                     "error", "Failed to fetch profile: " + e.getMessage()
@@ -178,15 +144,13 @@ public class WorkerController {
         }
     }
 
-    // ==================== HEALTH RECORDS ====================
-
     @GetMapping("/me/records")
     public ResponseEntity<Map<String, Object>> fetchRecords(@RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
             String abha = token.replace("demo-token-", "");
 
-            User worker = userService.getByAbhaNumber(abha);
+            User worker = userService.findByAbhaNumber(abha);
 
             if (worker == null) {
                 return ResponseEntity.status(401).body(Map.of(
@@ -195,7 +159,6 @@ public class WorkerController {
                 ));
             }
 
-            // Check if worker has FHIR patient ID
             if (worker.getFhirPatientId() == null || worker.getFhirPatientId().trim().isEmpty()) {
                 return ResponseEntity.ok(Map.of(
                         "success", true,
@@ -211,7 +174,6 @@ public class WorkerController {
                 ));
             }
 
-            // Fetch health records from FHIR service
             Map<String, Object> healthRecords = fhirService.getPatientHealthRecords(worker.getFhirPatientId());
 
             return ResponseEntity.ok(Map.of(
@@ -225,7 +187,6 @@ public class WorkerController {
             ));
 
         } catch (Exception e) {
-            System.err.println("Error fetching health records: " + e.getMessage());
             return ResponseEntity.status(500).body(Map.of(
                     "success", false,
                     "error", "Failed to fetch health records: " + e.getMessage()
@@ -233,15 +194,13 @@ public class WorkerController {
         }
     }
 
-    // ==================== QR CODE GENERATION ====================
-
     @GetMapping("/me/qr")
     public ResponseEntity<Map<String, Object>> generateQR(@RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
             String abha = token.replace("demo-token-", "");
 
-            User worker = userService.getByAbhaNumber(abha);
+            User worker = userService.findByAbhaNumber(abha);
 
             if (worker == null) {
                 return ResponseEntity.status(401).body(Map.of(
@@ -250,22 +209,15 @@ public class WorkerController {
                 ));
             }
 
-            System.out.println("Generating QR for worker: " + worker.getName());
-
-            // Use QrService to generate QR for worker
             Map<String, Object> qrResult = qrService.generateQRForWorker(worker);
 
             if (qrResult.containsKey("error") || !Boolean.TRUE.equals(qrResult.get("success"))) {
-                System.err.println("QR generation failed: " + qrResult.get("error"));
                 return ResponseEntity.status(500).body(qrResult);
             }
 
-            System.out.println("✅ QR generated successfully for: " + worker.getName());
-
-            // Return QR response in expected format
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "qrCode", qrResult.get("qrCode"), // Base64 PNG image
+                    "qrCode", qrResult.get("qrCode"),
                     "expiresAt", qrResult.get("expiresAt"),
                     "qrId", qrResult.get("qrId"),
                     "encryptedPayload", qrResult.get("encryptedPayload"),
@@ -273,8 +225,6 @@ public class WorkerController {
             ));
 
         } catch (Exception e) {
-            System.err.println("Error generating QR code: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of(
                     "success", false,
                     "error", "Failed to generate QR code: " + e.getMessage()
@@ -282,15 +232,13 @@ public class WorkerController {
         }
     }
 
-    // ==================== NOTIFICATIONS ====================
-
     @GetMapping("/me/notifications")
     public ResponseEntity<Map<String, Object>> getNotifications(@RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
             String abha = token.replace("demo-token-", "");
 
-            User worker = userService.getByAbhaNumber(abha);
+            User worker = userService.findByAbhaNumber(abha);
 
             if (worker == null) {
                 return ResponseEntity.status(401).body(Map.of(
@@ -299,13 +247,10 @@ public class WorkerController {
                 ));
             }
 
-            // Get notifications for worker's region
             List<Notification> notifications;
             try {
                 notifications = notificationRepository.findActiveNotificationsForRegion(worker.getRegion());
             } catch (Exception e) {
-                System.err.println("Error fetching notifications: " + e.getMessage());
-                // Return empty notifications if database query fails
                 notifications = List.of();
             }
 
@@ -318,7 +263,6 @@ public class WorkerController {
             ));
 
         } catch (Exception e) {
-            System.err.println("Error in getNotifications: " + e.getMessage());
             return ResponseEntity.status(500).body(Map.of(
                     "success", false,
                     "error", "Failed to fetch notifications: " + e.getMessage()
@@ -326,38 +270,24 @@ public class WorkerController {
         }
     }
 
-    // ==================== LOGOUT ====================
-
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(@RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
             String abha = token.replace("demo-token-", "");
 
-            User worker = null;
-            try {
-                worker = userService.getByAbhaNumber(abha);
-            } catch (Exception e) {
-                // Ignore errors during logout
-            }
-
-            System.out.println("Worker logout: " + (worker != null ? worker.getName() : abha));
-
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Worker logged out successfully",
-                    "worker", worker != null ? worker.getName() : "Unknown"
+                    "worker", abha
             ));
         } catch (Exception e) {
-            // Always return success for logout
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Logged out"
             ));
         }
     }
-
-    // ==================== HEALTH CHECK ====================
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> healthCheck() {

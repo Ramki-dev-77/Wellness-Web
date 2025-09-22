@@ -2284,11 +2284,42 @@ export default function MigrantWorkerHome() {
       </div>
     );
   };
+  const addFamily = () => {
+  return (
+    <div>
+      <form style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "400px" }}>
+        <label>
+          Name:
+          <input type="text" name="name" style={{ padding: "6px", marginLeft: "8px" }} />
+        </label>
+
+        <label>
+          Relation:
+          <input type="text" name="relation" style={{ padding: "6px", marginLeft: "8px" }} />
+        </label>
+
+        <label>
+          Age:
+          <input type="number" name="age" style={{ padding: "6px", marginLeft: "8px" }} />
+        </label>
+
+        <label>
+          Contact:
+          <input type="text" name="contact" style={{ padding: "6px", marginLeft: "8px" }} />
+        </label>
+
+        <button type="submit" style={{ padding: "8px", marginTop: "10px", background: "#2f80ed", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+          Add Family Member
+        </button>
+      </form>
+    </div>
+  );
+};
 
   const renderContent = () => {
     switch (activeTab) {
       case "family":
-        return <p>{t('content.family')}</p>;
+        return addFamily();
       case "profile":
         return renderProfile();
       case "records":

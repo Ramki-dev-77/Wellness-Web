@@ -1,14 +1,23 @@
 package com.backened.health_record_backend.officials;
 
-import com.backened.health_record_backend.users.User;
-import com.backened.health_record_backend.users.UserService;
-import com.backened.health_record_backend.users.UserRepository;
-import com.backened.health_record_backend.auth.EmailService; // ADD THIS IMPORT
-import org.springframework.web.bind.annotation.*;
-
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping; // ADD THIS IMPORT
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.backened.health_record_backend.auth.EmailService;
+import com.backened.health_record_backend.users.User;
+import com.backened.health_record_backend.users.UserRepository;
+import com.backened.health_record_backend.users.UserService;
 
 @RestController
 @RequestMapping("/official")
@@ -38,8 +47,8 @@ public class OfficialController {
         }
 
         try {
-            // FIXED: Check for both OFFICIAL and HEALTH_OFFICER roles
-            User official = userService.findByMobile(email);
+            // FIXED: Use findByEmail instead of findByMobile
+            User official = userService.findByEmail(email);
             if (official == null || (!("OFFICIAL".equals(official.getRole())) && !("HEALTH_OFFICER".equals(official.getRole())))) {
                 return Map.of("success", false, "error", "Health Official not found with this email");
             }
@@ -71,8 +80,8 @@ public class OfficialController {
                 return Map.of("success", false, "error", "Invalid or expired verification code");
             }
 
-            // Get official by email
-            User official = userService.findByMobile(email);
+            // FIXED: Use findByEmail instead of findByMobile
+            User official = userService.findByEmail(email);
             if (official == null) {
                 return Map.of("success", false, "error", "Official not found");
             }
@@ -80,7 +89,7 @@ public class OfficialController {
             return Map.of(
                     "token", "demo-token-" + official.getUsername(),
                     "user", official,
-                    "role", official.getRole(), // FIXED: Use actual role from user
+                    "role", official.getRole(),
                     "success", true
             );
         } catch (Exception e) {
@@ -384,9 +393,190 @@ public class OfficialController {
         }
     }
 
+    // SEARCH ENDPOINTS FOR MIGRANTS AND DOCTORS
+    @GetMapping("/search/migrant/{abhaNumber}")
+    public Map<String, Object> searchMigrantByAbha(@RequestHeader("Authorization") String authHeader,
+                                                   @PathVariable String abhaNumber) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String officialUsername = token.replace("demo-token-", "");
+
+            // Verify official authentication
+            User official = userService.findByUsernameAndRole(officialUsername, "OFFICIAL");
+            if (official == null) {
+                official = userService.findByUsernameAndRole(officialUsername, "HEALTH_OFFICER");
+            }
+
+            if (official == null) {
+                return Map.of("success", false, "error", "Invalid official authentication");
+            }
+
+            // Debug: Log the search attempt
+            System.out.println("Searching for migrant with ABHA: " + abhaNumber);
+
+            // Search for migrant by ABHA number
+            Optional<User> migrantOpt = userRepository.findByAbhaNumber(abhaNumber);
+            User migrant = migrantOpt.orElse(null);
+            
+            // Debug: Log the result
+            System.out.println("Search result: " + (migrant != null ? migrant.getName() : "Not found"));
+            
+            if (migrant == null) {
+                return Map.of(
+                        "success", false,
+                        "error", "No migrant found with ABHA number: " + abhaNumber
+                );
+            }
+
+            // Check if the user is actually a migrant worker
+            if (!"WORKER".equals(migrant.getRole()) && !"MIGRANT".equals(migrant.getRole())) {
+                return Map.of(
+                        "success", false,
+                        "error", "User found but is not a migrant worker. Role: " + migrant.getRole()
+                );
+            }
+
+            return Map.of(
+                    "success", true,
+                    "migrant", migrant,
+                    "searchedBy", official.getName()
+            );
+
+        } catch (Exception e) {
+            System.err.println("Error searching migrant: " + e.getMessage());
+            e.printStackTrace();
+            return Map.of("success", false, "error", "Failed to search migrant: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/search/doctor/{healthPid}")
+    public Map<String, Object> searchDoctorByHealthPid(@RequestHeader("Authorization") String authHeader,
+                                                       @PathVariable String healthPid) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String officialUsername = token.replace("demo-token-", "");
+
+            // Verify official authentication
+            User official = userService.findByUsernameAndRole(officialUsername, "OFFICIAL");
+            if (official == null) {
+                official = userService.findByUsernameAndRole(officialUsername, "HEALTH_OFFICER");
+            }
+
+            if (official == null) {
+                return Map.of("success", false, "error", "Invalid official authentication");
+            }
+
+            // Debug: Log the search attempt
+            System.out.println("Searching for doctor with Health PID: " + healthPid);
+
+            // Search for doctor by Health Professional ID
+            Optional<User> doctorOpt = userRepository.findByHealthPid(healthPid);
+            User doctor = doctorOpt.orElse(null);
+            
+            // Debug: Log the result
+            System.out.println("Search result: " + (doctor != null ? doctor.getName() : "Not found"));
+            
+            if (doctor == null) {
+                return Map.of(
+                        "success", false,
+                        "error", "No doctor found with Health Professional ID: " + healthPid
+                );
+            }
+
+            // Check if the user is actually a doctor
+            if (!"DOCTOR".equals(doctor.getRole())) {
+                return Map.of(
+                        "success", false,
+                        "error", "User found but is not a doctor. Role: " + doctor.getRole()
+                );
+            }
+
+            return Map.of(
+                    "success", true,
+                    "doctor", doctor,
+                    "searchedBy", official.getName()
+            );
+
+        } catch (Exception e) {
+            System.err.println("Error searching doctor: " + e.getMessage());
+            e.printStackTrace();
+            return Map.of("success", false, "error", "Failed to search doctor: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/test")
     public String test() {
         return "Official controller is working!";
+    }
+
+    // Simple test search without authentication for debugging
+    @GetMapping("/test/simple-search")
+    public Map<String, Object> simpleSearch() {
+        try {
+            // Test direct repository calls
+            List<User> allUsers = userRepository.findAll();
+            Optional<User> testMigrant = userRepository.findByAbhaNumber("ABHA14001234567890");
+            Optional<User> testDoctor = userRepository.findByHealthPid("HLP1");
+            
+            return Map.of(
+                "success", true,
+                "total_users", allUsers.size(),
+                "migrant_search", testMigrant.isPresent() ? testMigrant.get() : "Not found",
+                "doctor_search", testDoctor.isPresent() ? testDoctor.get() : "Not found"
+            );
+        } catch (Exception e) {
+            return Map.of("success", false, "error", e.getMessage());
+        }
+    }
+
+    // Test endpoint to verify database data and search functionality
+    @GetMapping("/test/search")
+    public Map<String, Object> testSearch() {
+        try {
+            // Get all users to debug
+            List<User> allUsers = userRepository.findAll();
+            
+            // Test finding a migrant worker
+            Optional<User> migrant = userRepository.findByAbhaNumber("ABHA14001234567890");
+            
+            // Test finding a doctor
+            Optional<User> doctor = userRepository.findByHealthPid("HLP1");
+            
+            // Get counts by role
+            long workerCount = userRepository.countByRole("WORKER");
+            long doctorCount = userRepository.countByRole("DOCTOR");
+            
+            // Debug info about all users
+            Map<String, Object> userDebugInfo = Map.of(
+                "total_users", allUsers.size(),
+                "worker_count", workerCount,
+                "doctor_count", doctorCount,
+                "sample_users", allUsers.stream().limit(5).map(user -> Map.of(
+                    "id", user.getId(),
+                    "name", user.getName(),
+                    "role", user.getRole(),
+                    "abha_number", user.getAbhaNumber() != null ? user.getAbhaNumber() : "null",
+                    "health_pid", user.getHealthPid() != null ? user.getHealthPid() : "null"
+                )).toList()
+            );
+            
+            return Map.of(
+                "success", true,
+                "migrant_test", Map.of(
+                    "searching_for", "ABHA14001234567890",
+                    "found", migrant.isPresent(),
+                    "result", migrant.isPresent() ? migrant.get().getName() : "Not found"
+                ),
+                "doctor_test", Map.of(
+                    "searching_for", "HLP1", 
+                    "found", doctor.isPresent(),
+                    "result", doctor.isPresent() ? doctor.get().getName() : "Not found"
+                ),
+                "database_info", userDebugInfo
+            );
+        } catch (Exception e) {
+            return Map.of("success", false, "error", e.getMessage(), "stack_trace", e.getStackTrace());
+        }
     }
     @PostMapping("/logout")
     public Map<String, Object> logout(@RequestHeader("Authorization") String authHeader) {

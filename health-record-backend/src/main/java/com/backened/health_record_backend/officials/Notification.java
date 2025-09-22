@@ -1,12 +1,18 @@
 package com.backened.health_record_backend.officials;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "notifications")
@@ -15,42 +21,38 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title", nullable = false)
+    @Column(nullable = false)
     private String title;
 
-    @Column(name = "message", nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String message;
 
-    @Column(name = "region")
-    private String region; // 'Kerala', 'Tamil Nadu', or NULL for all regions
+    private String region;
 
-    @Column(name = "type")
-    private String type = "health_camp"; // 'health_camp', 'announcement', 'reminder'
+    @Column(nullable = false)
+    private String type;
 
-    @Column(name = "created_by")
-    private String createdBy; // Official username
+    @Column(name = "created_by", nullable = false)
+    private String createdBy;
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT now()")
-    private Instant createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    @Column(name = "active")
-    private Boolean active = true;
+    @Column(name = "is_active")
+    private Boolean active;
 
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = Instant.now();
+            createdAt = LocalDateTime.now();
         }
         if (active == null) {
             active = true;
         }
-        if (type == null) {
-            type = "health_camp";
-        }
     }
 }
-

@@ -31,16 +31,46 @@ const doctorAPI = {
   },
 
   scanQR: async (encryptedData) => {
-    const token = sessionStorage.getItem('authToken');
-    const response = await fetch('http://localhost:8081/doctor/scan', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ encryptedData })
-    });
-    return response.json();
+    try {
+      const token = sessionStorage.getItem('authToken');
+      const response = await fetch('http://localhost:8081/doctor/scan', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ encryptedData })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Store patient data in session or state management
+        sessionStorage.setItem('currentPatient', JSON.stringify({
+          id: data.patientId,
+          info: data.patientInfo,
+          records: data.healthRecords
+        }));
+        
+        // Return success with patient ID for navigation
+        return {
+          success: true,
+          patientId: data.patientId,
+          recordsUrl: data.recordsUrl
+        };
+      } else {
+        return {
+          success: false,
+          error: data.error || 'Failed to process QR code'
+        };
+      }
+    } catch (error) {
+      console.error('Error scanning QR:', error);
+      return {
+        success: false,
+        error: 'Network error while scanning QR code'
+      };
+    }
   },
 
   addObservation: async (patientId, type, value, unit) => {
@@ -101,6 +131,28 @@ const doctorAPI = {
       }
     });
     return response.json();
+  },
+
+  searchPatientByAbha: async (abhaNumber) => {
+    const token = sessionStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8081/doctor/search/patient/${abhaNumber}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.json();
+  },
+
+  getPatientRecordsByAbha: async (abhaNumber) => {
+    const token = sessionStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8081/doctor/records/patient/${abhaNumber}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.json();
   }
 };
 
@@ -118,6 +170,15 @@ const translations = {
     loading: "Loading...",
     error: "Error loading data",
     retry: "Retry",
+    abhaSearch: "Search Patient",
+    abhaNumber: "ABHA Number",
+    searchButton: "Search Patient",
+    patientDetails: "Patient Details",
+    healthRecords: "Health Records",
+    observations: "Observations",
+    immunizations: "Immunizations",
+    conditions: "Conditions",
+    viewRecords: "View Records",
     scanSuccess: "QR Scan Successful",
     scanError: "Failed to scan QR code",
     scanPlaceholder: "Paste encrypted QR data here",
@@ -214,7 +275,9 @@ export default function DoctorHome() {
     scan: false,
     observations: false,
     immunizations: false,
-    history: false
+    history: false,
+    search: false,
+    records: false
   });
   
   const [error, setError] = useState({
@@ -222,7 +285,9 @@ export default function DoctorHome() {
     scan: null,
     observations: null,
     immunizations: null,
-    history: null
+    history: null,
+    search: null,
+    records: null
   });
 
   // Data states
@@ -246,6 +311,11 @@ export default function DoctorHome() {
     vaccineType: '',
     lotNumber: ''
   });
+
+  // ABHA Search states
+  const [abhaSearchInput, setAbhaSearchInput] = useState('');
+  const [searchedPatient, setSearchedPatient] = useState(null);
+  const [patientRecords, setPatientRecords] = useState(null);
 
   // Initialize from sessionStorage
   useEffect(() => {
@@ -413,6 +483,55 @@ export default function DoctorHome() {
     setProfileFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleAbhaSearch = async () => {
+    if (!abhaSearchInput.trim()) {
+      setErrorState('search', 'Please enter an ABHA number');
+      return;
+    }
+
+    setLoadingState('search', true);
+    setErrorState('search', null);
+    setSearchedPatient(null);
+    setPatientRecords(null);
+
+    try {
+      const response = await doctorAPI.searchPatientByAbha(abhaSearchInput.trim());
+      
+      if (response.success) {
+        setSearchedPatient(response.patient);
+        // Automatically fetch records after successful search
+        await handleFetchPatientRecords(abhaSearchInput.trim());
+      } else {
+        setErrorState('search', response.error || 'Patient not found');
+      }
+    } catch (error) {
+      console.error('Error searching patient:', error);
+      setErrorState('search', 'Failed to search patient. Please try again.');
+    } finally {
+      setLoadingState('search', false);
+    }
+  };
+
+  const handleFetchPatientRecords = async (abhaNumber) => {
+    setLoadingState('records', true);
+    setErrorState('records', null);
+
+    try {
+      const response = await doctorAPI.getPatientRecordsByAbha(abhaNumber);
+      
+      if (response.success) {
+        setPatientRecords(response.records);
+      } else {
+        setErrorState('records', response.error || 'Failed to fetch patient records');
+      }
+    } catch (error) {
+      console.error('Error fetching patient records:', error);
+      setErrorState('records', 'Failed to fetch patient records. Please try again.');
+    } finally {
+      setLoadingState('records', false);
+    }
+  };
+
   const t = (key) => translations[language]?.[key] || translations.en[key] || key;
 
   const LoadingSpinner = () => (
@@ -445,6 +564,210 @@ export default function DoctorHome() {
         >
           {t('retry')}
         </button>
+      )}
+    </div>
+  );
+
+  // ABHA Search Section Component
+  const AbhaSearchSection = () => (
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
+      <h3 style={{ marginBottom: '2rem', textAlign: 'center' }}>{t('abhaSearch')}</h3>
+      
+      {/* Search Form */}
+      <div style={{
+        backgroundColor: '#f8fafc',
+        padding: '2rem',
+        borderRadius: '12px',
+        marginBottom: '2rem',
+        border: '1px solid #e2e8f0'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '400px', margin: '0 auto' }}>
+          <label style={{ fontWeight: '500', color: '#374151' }}>{t('abhaNumber')}</label>
+          <input
+            type="text"
+            value={abhaSearchInput}
+            onChange={(e) => setAbhaSearchInput(e.target.value)}
+            placeholder="Enter 14-digit ABHA number"
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '1rem'
+            }}
+          />
+          <button
+            onClick={handleAbhaSearch}
+            disabled={loading.search}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem 1.5rem',
+              backgroundColor: loading.search ? '#9ca3af' : '#059669',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: loading.search ? 'not-allowed' : 'pointer',
+              fontSize: '1rem',
+              fontWeight: '500'
+            }}
+          >
+            {loading.search ? <RefreshCw className="animate-spin" size={16} /> : <FileText size={16} />}
+            {loading.search ? t('loading') : t('searchButton')}
+          </button>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {error.search && <ErrorMessage message={error.search} />}
+
+      {/* Patient Details */}
+      {searchedPatient && (
+        <div style={{
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '2rem',
+          marginBottom: '2rem'
+        }}>
+          <h4 style={{ color: '#15803d', marginBottom: '1.5rem', textAlign: 'center' }}>
+            {t('patientDetails')}
+          </h4>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: '1rem',
+            marginBottom: '1rem'
+          }}>
+            <div>
+              <strong>Name:</strong> {searchedPatient.name}
+            </div>
+            <div>
+              <strong>ABHA Number:</strong> {searchedPatient.abhaNumber}
+            </div>
+            <div>
+              <strong>Mobile:</strong> {searchedPatient.mobile}
+            </div>
+            <div>
+              <strong>Region:</strong> {searchedPatient.region}
+            </div>
+            <div>
+              <strong>Role:</strong> {searchedPatient.role}
+            </div>
+            {searchedPatient.fhirPatientId && (
+              <div>
+                <strong>FHIR Patient ID:</strong> {searchedPatient.fhirPatientId}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Patient Records */}
+      {loading.records && <LoadingSpinner />}
+      {error.records && <ErrorMessage message={error.records} />}
+      
+      {patientRecords && (
+        <div style={{
+          backgroundColor: 'white',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '2rem'
+        }}>
+          <h4 style={{ marginBottom: '2rem', textAlign: 'center' }}>{t('healthRecords')}</h4>
+          
+          {/* Observations */}
+          <div style={{ marginBottom: '2rem' }}>
+            <h5 style={{ color: '#374151', marginBottom: '1rem' }}>{t('observations')}</h5>
+            {patientRecords.observations && patientRecords.observations.length > 0 ? (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {patientRecords.observations.map((obs, index) => (
+                  <div key={index} style={{
+                    backgroundColor: '#f9fafb',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div>
+                        <strong>{obs.type}:</strong> {obs.value} {obs.unit}
+                      </div>
+                      <small style={{ color: '#6b7280' }}>{obs.date}</small>
+                    </div>
+                    <small style={{ color: '#6b7280' }}>Recorded by: {obs.recordedBy}</small>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No observations recorded</p>
+            )}
+          </div>
+
+          {/* Immunizations */}
+          <div style={{ marginBottom: '2rem' }}>
+            <h5 style={{ color: '#374151', marginBottom: '1rem' }}>{t('immunizations')}</h5>
+            {patientRecords.immunizations && patientRecords.immunizations.length > 0 ? (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {patientRecords.immunizations.map((imm, index) => (
+                  <div key={index} style={{
+                    backgroundColor: '#f0f9ff',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid #bae6fd'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div>
+                        <strong>{imm.vaccineType}</strong> (Lot: {imm.lotNumber})
+                      </div>
+                      <small style={{ color: '#6b7280' }}>{imm.date}</small>
+                    </div>
+                    <small style={{ color: '#6b7280' }}>Administered by: {imm.administeredBy}</small>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No immunizations recorded</p>
+            )}
+          </div>
+
+          {/* Conditions */}
+          <div>
+            <h5 style={{ color: '#374151', marginBottom: '1rem' }}>{t('conditions')}</h5>
+            {patientRecords.conditions && patientRecords.conditions.length > 0 ? (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {patientRecords.conditions.map((condition, index) => (
+                  <div key={index} style={{
+                    backgroundColor: '#fef3c7',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid #fbbf24'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div>
+                        <strong>{condition.name}</strong>
+                        <span style={{ 
+                          marginLeft: '0.5rem',
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: condition.status === 'Active' ? '#dc2626' : '#059669',
+                          color: 'white',
+                          borderRadius: '4px',
+                          fontSize: '0.75rem'
+                        }}>
+                          {condition.status}
+                        </span>
+                      </div>
+                      <small style={{ color: '#6b7280' }}>Diagnosed: {condition.diagnosedDate}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No conditions recorded</p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -917,6 +1240,8 @@ export default function DoctorHome() {
     switch (activeTab) {
       case "qr":
         return <QRScanner />;
+      case "search":
+        return <AbhaSearchSection />;
       case "summary":
         return <p>📑 Patient Summary details go here</p>;
       case "vaccinations":
@@ -1020,6 +1345,7 @@ export default function DoctorHome() {
       }}>
         {[
           { key: "qr", icon: QrCode, color: "#10b981", label: t('scan') },
+          { key: "search", icon: FileText, color: "#059669", label: t('abhaSearch') },
           { key: "profile", icon: User, color: "#3b82f6", label: t('profile') },
           { key: "summary", icon: FileText, color: "#3b82f6", label: t('summary') },
           { key: "vaccinations", icon: Syringe, color: "#6366f1", label: t('vaccinations') },

@@ -1,10 +1,11 @@
 package com.backened.health_record_backend.seed;
 
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
 import com.backened.health_record_backend.fhirmock.FhirResource;
 import com.backened.health_record_backend.fhirmock.FhirResourceRepository;
 import com.backened.health_record_backend.users.UserRepository;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 
 @Component
 public class DemoSeeder implements CommandLineRunner {

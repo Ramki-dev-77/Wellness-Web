@@ -1,6 +1,14 @@
 package com.backened.health_record_backend.fhirmock;
 
-import jakarta.persistence.*;
+import java.time.Instant;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,33 +21,31 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FhirResource {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "resource_type")
+    @Column(nullable = false)
     private String resourceType;
 
-    @Column(name = "resource_id", unique = true)
+    @Column(unique = true, nullable = false)
     private String resourceId;
 
-    // FIXED: Use TEXT instead of JSONB
-    @Column(name = "body", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String body;
 
-    @Column(name = "subject_patient_id")
     private String subjectPatientId;
 
-    @Column(name = "patient_id")
     private String patientId;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT now()")
-    private java.time.Instant createdAt;
+    private Instant createdAt;
 
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = java.time.Instant.now();
+            createdAt = Instant.now();
         }
     }
 }

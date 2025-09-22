@@ -13,7 +13,8 @@ import {
   LogOut,
   RefreshCw,
   Plus,
-  Trash2
+  Trash2,
+  Search
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -100,6 +101,28 @@ const officialAPI = {
       }
     });
     return response.json();
+  },
+
+  searchMigrant: async (abhaNumber) => {
+    const token = sessionStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8081/official/search/migrant/${abhaNumber}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.json();
+  },
+
+  searchDoctor: async (healthPid) => {
+    const token = sessionStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:8081/official/search/doctor/${healthPid}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.json();
   }
 };
 
@@ -135,6 +158,18 @@ const translations = {
     affectedWorkers: "workers will receive this notification",
     selectRegion: "Select Region",
     allRegions: "All Regions",
+    search: "Search",
+    searchMigrant: "Search Migrant",
+    searchDoctor: "Search Doctor",
+    abhaNumber: "ABHA Number",
+    healthPid: "Health Professional ID",
+    searchResults: "Search Results",
+    migrantDetails: "Migrant Details",
+    doctorDetails: "Doctor Details",
+    noResultsFound: "No results found",
+    searchPlaceholderMigrant: "Enter ABHA number to search migrant",
+    searchPlaceholderDoctor: "Enter Health Professional ID to search doctor",
+    clearSearch: "Clear Search",
     profileSection: {
       personalDetails: "Personal Details",
       professionalDetails: "Professional Details",
@@ -235,6 +270,24 @@ export default function HealthOfficialHome() {
     message: '',
     region: '',
     type: 'announcement'
+  });
+
+  // Search states
+  const [searchForm, setSearchForm] = useState({
+    migrantAbha: '',
+    doctorHealthPid: ''
+  });
+  const [searchResults, setSearchResults] = useState({
+    migrant: null,
+    doctor: null
+  });
+  const [searchLoading, setSearchLoading] = useState({
+    migrant: false,
+    doctor: false
+  });
+  const [searchError, setSearchError] = useState({
+    migrant: null,
+    doctor: null
   });
 
   // Initialize from sessionStorage
@@ -410,6 +463,73 @@ export default function HealthOfficialHome() {
 
   const handleInputChange = (field, value) => {
     setProfileFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Search handlers
+  const handleSearchMigrant = async () => {
+    if (!searchForm.migrantAbha.trim()) {
+      setSearchError(prev => ({ ...prev, migrant: 'Please enter ABHA number' }));
+      return;
+    }
+
+    setSearchLoading(prev => ({ ...prev, migrant: true }));
+    setSearchError(prev => ({ ...prev, migrant: null }));
+
+    try {
+      const response = await officialAPI.searchMigrant(searchForm.migrantAbha.trim());
+      
+      if (response.success) {
+        setSearchResults(prev => ({ ...prev, migrant: response.migrant }));
+      } else {
+        setSearchError(prev => ({ ...prev, migrant: response.error || 'Failed to search migrant' }));
+        setSearchResults(prev => ({ ...prev, migrant: null }));
+      }
+    } catch (error) {
+      console.error('Error searching migrant:', error);
+      setSearchError(prev => ({ ...prev, migrant: 'Failed to search migrant' }));
+      setSearchResults(prev => ({ ...prev, migrant: null }));
+    } finally {
+      setSearchLoading(prev => ({ ...prev, migrant: false }));
+    }
+  };
+
+  const handleSearchDoctor = async () => {
+    if (!searchForm.doctorHealthPid.trim()) {
+      setSearchError(prev => ({ ...prev, doctor: 'Please enter Health Professional ID' }));
+      return;
+    }
+
+    setSearchLoading(prev => ({ ...prev, doctor: true }));
+    setSearchError(prev => ({ ...prev, doctor: null }));
+
+    try {
+      const response = await officialAPI.searchDoctor(searchForm.doctorHealthPid.trim());
+      
+      if (response.success) {
+        setSearchResults(prev => ({ ...prev, doctor: response.doctor }));
+      } else {
+        setSearchError(prev => ({ ...prev, doctor: response.error || 'Failed to search doctor' }));
+        setSearchResults(prev => ({ ...prev, doctor: null }));
+      }
+    } catch (error) {
+      console.error('Error searching doctor:', error);
+      setSearchError(prev => ({ ...prev, doctor: 'Failed to search doctor' }));
+      setSearchResults(prev => ({ ...prev, doctor: null }));
+    } finally {
+      setSearchLoading(prev => ({ ...prev, doctor: false }));
+    }
+  };
+
+  const handleClearSearch = (type) => {
+    if (type === 'migrant') {
+      setSearchForm(prev => ({ ...prev, migrantAbha: '' }));
+      setSearchResults(prev => ({ ...prev, migrant: null }));
+      setSearchError(prev => ({ ...prev, migrant: null }));
+    } else if (type === 'doctor') {
+      setSearchForm(prev => ({ ...prev, doctorHealthPid: '' }));
+      setSearchResults(prev => ({ ...prev, doctor: null }));
+      setSearchError(prev => ({ ...prev, doctor: null }));
+    }
   };
 
   const t = (key) => translations[language]?.[key] || translations.en[key] || key;
@@ -689,6 +809,213 @@ export default function HealthOfficialHome() {
     </div>
   );
 
+  // Search Component
+  const SearchSection = () => (
+    <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "1rem" }}>
+      <h3>{t('search')}</h3>
+      
+      {/* Search Forms */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+        
+        {/* Migrant Search */}
+        <div style={{
+          backgroundColor: '#f8fafc',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0'
+        }}>
+          <h4 style={{ margin: '0 0 1rem 0', color: '#1f2937' }}>{t('searchMigrant')}</h4>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>{t('abhaNumber')}</label>
+            <input
+              type="text"
+              value={searchForm.migrantAbha}
+              onChange={(e) => setSearchForm(prev => ({ ...prev, migrantAbha: e.target.value }))}
+              placeholder={t('searchPlaceholderMigrant')}
+              style={{ 
+                width: '100%', 
+                padding: '0.75rem', 
+                border: '1px solid #d1d5db', 
+                borderRadius: '4px',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <button
+              onClick={handleSearchMigrant}
+              disabled={searchLoading.migrant || !searchForm.migrantAbha.trim()}
+              style={{
+                flex: 1,
+                padding: '0.75rem 1rem',
+                backgroundColor: searchLoading.migrant ? '#9ca3af' : '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: searchLoading.migrant || !searchForm.migrantAbha.trim() ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              {searchLoading.migrant ? <RefreshCw className="animate-spin" size={16} /> : <Search size={16} />}
+              {searchLoading.migrant ? t('loading') : t('search')}
+            </button>
+            <button
+              onClick={() => handleClearSearch('migrant')}
+              style={{
+                padding: '0.75rem',
+                backgroundColor: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          
+          {/* Migrant Search Error */}
+          {searchError.migrant && (
+            <div style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '4px',
+              padding: '0.75rem',
+              color: '#dc2626',
+              fontSize: '0.875rem'
+            }}>
+              {searchError.migrant}
+            </div>
+          )}
+          
+          {/* Migrant Search Result */}
+          {searchResults.migrant && (
+            <div style={{
+              backgroundColor: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '4px',
+              padding: '1rem',
+              marginTop: '1rem'
+            }}>
+              <h5 style={{ margin: '0 0 0.75rem 0', color: '#15803d' }}>{t('migrantDetails')}</h5>
+              <div style={{ fontSize: '0.875rem', color: '#374151' }}>
+                <p style={{ margin: '0.25rem 0' }}><strong>Name:</strong> {searchResults.migrant.name}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>ABHA:</strong> {searchResults.migrant.abhaNumber}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>Mobile:</strong> {searchResults.migrant.mobile}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>Region:</strong> {searchResults.migrant.region}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>Role:</strong> {searchResults.migrant.role}</p>
+                {searchResults.migrant.abhaAddress && (
+                  <p style={{ margin: '0.25rem 0' }}><strong>ABHA Address:</strong> {searchResults.migrant.abhaAddress}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Doctor Search */}
+        <div style={{
+          backgroundColor: '#f8fafc',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0'
+        }}>
+          <h4 style={{ margin: '0 0 1rem 0', color: '#1f2937' }}>{t('searchDoctor')}</h4>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>{t('healthPid')}</label>
+            <input
+              type="text"
+              value={searchForm.doctorHealthPid}
+              onChange={(e) => setSearchForm(prev => ({ ...prev, doctorHealthPid: e.target.value }))}
+              placeholder={t('searchPlaceholderDoctor')}
+              style={{ 
+                width: '100%', 
+                padding: '0.75rem', 
+                border: '1px solid #d1d5db', 
+                borderRadius: '4px',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <button
+              onClick={handleSearchDoctor}
+              disabled={searchLoading.doctor || !searchForm.doctorHealthPid.trim()}
+              style={{
+                flex: 1,
+                padding: '0.75rem 1rem',
+                backgroundColor: searchLoading.doctor ? '#9ca3af' : '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: searchLoading.doctor || !searchForm.doctorHealthPid.trim() ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              {searchLoading.doctor ? <RefreshCw className="animate-spin" size={16} /> : <Search size={16} />}
+              {searchLoading.doctor ? t('loading') : t('search')}
+            </button>
+            <button
+              onClick={() => handleClearSearch('doctor')}
+              style={{
+                padding: '0.75rem',
+                backgroundColor: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          
+          {/* Doctor Search Error */}
+          {searchError.doctor && (
+            <div style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '4px',
+              padding: '0.75rem',
+              color: '#dc2626',
+              fontSize: '0.875rem'
+            }}>
+              {searchError.doctor}
+            </div>
+          )}
+          
+          {/* Doctor Search Result */}
+          {searchResults.doctor && (
+            <div style={{
+              backgroundColor: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: '4px',
+              padding: '1rem',
+              marginTop: '1rem'
+            }}>
+              <h5 style={{ margin: '0 0 0.75rem 0', color: '#1d4ed8' }}>{t('doctorDetails')}</h5>
+              <div style={{ fontSize: '0.875rem', color: '#374151' }}>
+                <p style={{ margin: '0.25rem 0' }}><strong>Name:</strong> {searchResults.doctor.name}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>Health Professional ID:</strong> {searchResults.doctor.healthPid}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>Mobile:</strong> {searchResults.doctor.mobile}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>Region:</strong> {searchResults.doctor.region}</p>
+                <p style={{ margin: '0.25rem 0' }}><strong>Role:</strong> {searchResults.doctor.role}</p>
+                {searchResults.doctor.abhaNumber && (
+                  <p style={{ margin: '0.25rem 0' }}><strong>ABHA:</strong> {searchResults.doctor.abhaNumber}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   // Profile Component (using existing structure)
   const ProfileSection = () => {
     if (!officialProfile) {
@@ -813,27 +1140,29 @@ export default function HealthOfficialHome() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "qrScan":
-        return (
-          <div style={{ padding: "2rem", backgroundColor: "#f8fafc", borderRadius: "12px", margin: "2rem auto", maxWidth: "500px" }}>
-            <h3>QR Code Scanner</h3>
-            <div style={{ 
-              width: "300px", 
-              height: "300px", 
-              backgroundColor: "#e5e7eb", 
-              margin: "1rem auto", 
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#6b7280"
-            }}>
-              <QrCode size={64} />
-              <span style={{ marginLeft: "1rem" }}>Scanner View</span>
-            </div>
-            <p>Point your camera at a patient's QR code to access their health records</p>
-          </div>
-        );
+      // case "qrScan":
+      //   return (
+      //     <div style={{ padding: "2rem", backgroundColor: "#f8fafc", borderRadius: "12px", margin: "2rem auto", maxWidth: "500px" }}>
+      //       <h3>QR Code Scanner</h3>
+      //       <div style={{ 
+      //         width: "300px", 
+      //         height: "300px", 
+      //         backgroundColor: "#e5e7eb", 
+      //         margin: "1rem auto", 
+      //         borderRadius: "8px",
+      //         display: "flex",
+      //         alignItems: "center",
+      //         justifyContent: "center",
+      //         color: "#6b7280"
+      //       }}>
+      //         <QrCode size={64} />
+      //         <span style={{ marginLeft: "1rem" }}>Scanner View</span>
+      //       </div>
+      //       <p>Point your camera at a patient's QR code to access their health records</p>
+      //     </div>
+      //   );
+      case "search":
+        return <SearchSection />;
       case "workerManagement":
         return <WorkerManagementSection />;
       case "reports":
@@ -936,7 +1265,8 @@ export default function HealthOfficialHome() {
         flexWrap: "wrap",
       }}>
         {[
-          { key: "qrScan", icon: QrCode, color: "#10b981", label: t('qrScan') },
+          // { key: "qrScan", icon: QrCode, color: "#10b981", label: t('qrScan') },
+          { key: "search", icon: Search, color: "#f59e0b", label: t('search') },
           { key: "profile", icon: User, color: "#3b82f6", label: t('profile') },
           { key: "workerManagement", icon: Users, color: "#10b981", label: t('workerManagement') },
           { key: "reports", icon: FileText, color: "#3b82f6", label: t('reports') },

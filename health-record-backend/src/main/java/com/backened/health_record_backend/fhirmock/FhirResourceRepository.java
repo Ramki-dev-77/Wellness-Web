@@ -1,8 +1,9 @@
 package com.backened.health_record_backend.fhirmock;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FhirResourceRepository extends JpaRepository<FhirResource, Long> {
     Optional<FhirResource> findByResourceTypeAndResourceId(String resourceType, String resourceId);

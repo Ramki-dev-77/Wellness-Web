@@ -1,66 +1,68 @@
 package com.backened.health_record_backend.doctors;
 
-import com.backened.health_record_backend.users.User;
-import com.backened.health_record_backend.users.UserService;
-import com.backened.health_record_backend.Qr.QrService;
-import com.backened.health_record_backend.fhirmock.FhirService;
-import com.backened.health_record_backend.fhirmock.FhirResource;
-import com.backened.health_record_backend.fhirmock.FhirResourceService;
-import com.backened.health_record_backend.auth.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.backened.health_record_backend.Qr.QrService;
+import com.backened.health_record_backend.auth.EmailService;
+import com.backened.health_record_backend.fhirmock.FhirResourceService;
+import com.backened.health_record_backend.fhirmock.FhirService;
+import com.backened.health_record_backend.users.User;
+import com.backened.health_record_backend.users.UserRepository;
+import com.backened.health_record_backend.users.UserService;
 
 @RestController
 @RequestMapping("/doctor")
 @CrossOrigin(origins = "http://localhost:3000")
 public class DoctorController {
+
     private final UserService userService;
     private final QrService qrService;
     private final FhirService fhirService;
     private final ScanLogRepository scanLogRepository;
     private final FhirResourceService fhirResourceService;
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
     public DoctorController(UserService userService, QrService qrService, FhirService fhirService,
                             ScanLogRepository scanLogRepository, FhirResourceService fhirResourceService,
-                            EmailService emailService) {
+                            EmailService emailService, UserRepository userRepository) {
         this.userService = userService;
         this.qrService = qrService;
         this.fhirService = fhirService;
         this.scanLogRepository = scanLogRepository;
         this.fhirResourceService = fhirResourceService;
         this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
-    // FIXED EMAIL-BASED AUTHENTICATION - WITHOUT CREATING NEW USERS
     @PostMapping("/email-input")
     public Map<String, Object> sendEmailVerification(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-
-        System.out.println("Doctor email-input request: " + email);
 
         if (email == null || email.trim().isEmpty()) {
             return Map.of("success", false, "error", "Email is required");
         }
 
         try {
-            // FIXED: Always send OTP regardless of user existence (for demo purposes)
             boolean emailSent = emailService.sendVerificationOTP(email, "doctor");
-            System.out.println("Email sent status: " + emailSent);
-
-            // For demo purposes, always return success
             return Map.of(
                     "success", true,
                     "message", "Verification code sent to your email",
                     "email", email
             );
-
         } catch (Exception e) {
-            System.err.println("Email-input error: " + e.getMessage());
-            // Even if email service fails, return success for demo
             return Map.of(
                     "success", true,
                     "message", "Verification code sent to your email (demo mode)",
@@ -69,66 +71,34 @@ public class DoctorController {
         }
     }
 
-    // FIXED EMAIL VERIFICATION - ALWAYS ACCEPT DEMO OTP
     @PostMapping("/email-verify")
     public Map<String, Object> verifyEmailAndLogin(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String code = request.get("code");
         String otp = request.get("otp");
 
-        // Accept both parameter names
         String verificationCode = code != null ? code : otp;
-
-        System.out.println("Doctor email-verify request - Email: " + email + ", Code: " + verificationCode);
 
         if (email == null || verificationCode == null) {
             return Map.of("success", false, "error", "Email and verification code are required");
         }
 
         try {
-            // FIXED: Always accept demo OTP for testing
-            boolean isValidOtp = false;
-            if ("123456".equals(verificationCode)) {
-                isValidOtp = true; // Demo OTP always works
-                System.out.println("Using demo OTP - login successful");
-            } else {
-                try {
-                    isValidOtp = emailService.verifyOTP(email, verificationCode);
-                    System.out.println("Real OTP verification result: " + isValidOtp);
-                } catch (Exception e) {
-                    System.err.println("Real OTP verification failed: " + e.getMessage());
-                    // If real OTP fails, still allow demo OTP
-                    isValidOtp = false;
-                }
-            }
+            boolean isValidOtp = "123456".equals(verificationCode) || emailService.verifyOTP(email, verificationCode);
 
             if (!isValidOtp) {
                 return Map.of("success", false, "error", "Invalid verification code. Use 123456 for demo.");
             }
 
-            // FIXED: Try to find existing doctor, if not found create demo user object
-            User doctor = null;
-            try {
-                doctor = userService.findByMobile(email);
-                if (doctor != null && !"DOCTOR".equals(doctor.getRole())) {
-                    doctor = null; // Not a doctor
-                }
-            } catch (Exception e) {
-                System.err.println("Error finding doctor: " + e.getMessage());
-            }
-
-            // If no doctor found, create a demo user object (not saved to DB)
-            if (doctor == null) {
+            User doctor = userService.findByMobile(email);
+            if (doctor == null || !"DOCTOR".equals(doctor.getRole())) {
                 doctor = new User();
                 doctor.setMobile(email);
-                doctor.setName(email.split("@")[0]); // Use email prefix as name
+                doctor.setName(email.split("@")[0]);
                 doctor.setUsername(email.split("@")[0] + "_doctor");
                 doctor.setRole("DOCTOR");
-                doctor.setId(999L); // Demo ID
-                System.out.println("Created demo doctor object: " + doctor.getUsername());
+                doctor.setId(999L);
             }
-
-            System.out.println("Doctor login successful: " + doctor.getUsername());
 
             return Map.of(
                     "success", true,
@@ -142,8 +112,8 @@ public class DoctorController {
                     ),
                     "role", "DOCTOR"
             );
+
         } catch (Exception e) {
-            System.err.println("Email-verify error: " + e.getMessage());
             return Map.of("success", false, "error", "Login failed: " + e.getMessage());
         }
     }
@@ -151,14 +121,11 @@ public class DoctorController {
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> request) {
         String username = request.get("username");
-        String password = request.get("password");
-
         try {
             User doctor = userService.findByUsernameAndRole(username, "DOCTOR");
             if (doctor == null) {
                 return Map.of("success", false, "error", "Doctor not found");
             }
-
             return Map.of(
                     "success", true,
                     "token", "demo-token-" + username,
@@ -170,39 +137,29 @@ public class DoctorController {
         }
     }
 
-    // FIXED: Handle demo users that might not exist in database
     @GetMapping("/me")
     public Map<String, Object> fetchProfile(@RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
             String username = token.replace("demo-token-", "");
-
             User doctor = userService.findByUsernameAndRole(username, "DOCTOR");
-
             if (doctor != null) {
-                return Map.of(
-                        "success", true,
-                        "user", doctor
-                );
+                return Map.of("success", true, "user", doctor);
             } else {
-                // Return demo profile for non-existent users
-                return Map.of(
-                        "success", true,
+                return Map.of("success", true,
                         "user", Map.of(
                                 "id", 999L,
                                 "name", username.replace("_doctor", ""),
                                 "username", username,
                                 "mobile", username.replace("_doctor", "") + "@example.com",
                                 "role", "DOCTOR"
-                        )
-                );
+                        ));
             }
         } catch (Exception e) {
             return Map.of("success", false, "error", "Failed to fetch profile");
         }
     }
 
-    // FIXED: Handle authentication for demo users
     @PostMapping("/scan")
     public Map<String, Object> scanQR(@RequestHeader("Authorization") String authHeader,
                                       @RequestBody Map<String, String> request) {
@@ -210,16 +167,8 @@ public class DoctorController {
             String token = authHeader.replace("Bearer ", "");
             String doctorUsername = token.replace("demo-token-", "");
 
-            // Try to find real doctor, if not found create demo doctor object
-            User doctor = null;
-            try {
-                doctor = userService.findByUsernameAndRole(doctorUsername, "DOCTOR");
-            } catch (Exception e) {
-                System.err.println("Error finding doctor for scan: " + e.getMessage());
-            }
-
+            User doctor = userService.findByUsernameAndRole(doctorUsername, "DOCTOR");
             if (doctor == null) {
-                // Create demo doctor object for scanning
                 doctor = new User();
                 doctor.setUsername(doctorUsername);
                 doctor.setName(doctorUsername.replace("_doctor", ""));
@@ -257,7 +206,6 @@ public class DoctorController {
             );
 
         } catch (Exception e) {
-            System.err.println("Scan error: " + e.getMessage());
             return Map.of("success", false, "error", "Scan failed: " + e.getMessage());
         }
     }
@@ -269,7 +217,6 @@ public class DoctorController {
             String token = authHeader.replace("Bearer ", "");
             String doctorUsername = token.replace("demo-token-", "");
 
-            // For demo purposes, return empty history
             return Map.of(
                     "success", true,
                     "doctor", doctorUsername.replace("_doctor", ""),
@@ -282,7 +229,6 @@ public class DoctorController {
         }
     }
 
-    // Keep your existing methods for records...
     @PostMapping("/records/observations")
     public Map<String, Object> addObservation(@RequestHeader("Authorization") String authHeader,
                                               @RequestBody Map<String, Object> request) {
@@ -299,7 +245,6 @@ public class DoctorController {
                 return Map.of("success", false, "error", "Missing required fields: patientId, type, value, unit");
             }
 
-            // For demo, return success without actually saving
             return Map.of(
                     "success", true,
                     "message", "Observation recorded successfully (demo mode)",
@@ -333,6 +278,158 @@ public class DoctorController {
                     "success", true,
                     "message", "Logged out"
             );
+        }
+    }
+
+    // SEARCH ENDPOINTS FOR PATIENTS
+    @GetMapping("/search/patient/{abhaNumber}")
+    public Map<String, Object> searchPatientByAbha(@RequestHeader("Authorization") String authHeader,
+                                                   @PathVariable String abhaNumber) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String doctorUsername = token.replace("demo-token-", "");
+System.out.println("Searching patient with ABHA: " + abhaNumber); 
+            // Verify doctor authentication
+            User doctor = userService.findByUsernameAndRole(doctorUsername, "DOCTOR");
+            if (doctor == null) {
+                // Create demo doctor if not found
+                doctor = new User();
+                doctor.setUsername(doctorUsername);
+                doctor.setName(doctorUsername.replace("_doctor", ""));
+                doctor.setRole("DOCTOR");
+                doctor.setId(999L);
+            }
+
+            // Debug: Log the search attempt
+            System.out.println("Doctor searching for patient with ABHA: " + abhaNumber);
+
+            // Search for patient by ABHA number
+            Optional<User> patientOpt = userRepository.findByAbhaNumber(abhaNumber);
+            User patient = patientOpt.orElse(null);
+            System.out.println("Patient found: " + (patient != null ? patient.getName() : "null"));
+            // Debug: Log the result
+            System.out.println("Search result: " + (patient != null ? patient.getName() : "Not found"));
+            
+            if (patient == null) {
+                return Map.of(
+                        "success", false,
+                        "error", "No patient found with ABHA number: " + abhaNumber
+                );
+            }
+
+            // Check if the user is a patient (migrant worker)
+            if (!"WORKER".equals(patient.getRole()) && !"MIGRANT".equals(patient.getRole())) {
+                return Map.of(
+                        "success", false,
+                        "error", "User found but is not a patient. Role: " + patient.getRole()
+                );
+            }
+
+            return Map.of(
+                    "success", true,
+                    "patient", Map.of(
+                            "id", patient.getId(),
+                            "name", patient.getName(),
+                            "abhaNumber", patient.getAbhaNumber(),
+                            "mobile", patient.getMobile(),
+                            "region", patient.getRegion(),
+                            "fhirPatientId", patient.getFhirPatientId() != null ? patient.getFhirPatientId() : "",
+                            "role", patient.getRole()
+                    ),
+                    "searchedBy", doctor.getName()
+            );
+
+        } catch (Exception e) {
+            System.err.println("Error searching patient: " + e.getMessage());
+            e.printStackTrace();
+            return Map.of("success", false, "error", "Failed to search patient: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/records/patient/{abhaNumber}")
+    public Map<String, Object> getPatientRecords(@RequestHeader("Authorization") String authHeader,
+                                                 @PathVariable String abhaNumber) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String doctorUsername = token.replace("demo-token-", "");
+
+            // Verify doctor authentication
+            User doctor = userService.findByUsernameAndRole(doctorUsername, "DOCTOR");
+            if (doctor == null) {
+                // Create demo doctor if not found
+                doctor = new User();
+                doctor.setUsername(doctorUsername);
+                doctor.setName(doctorUsername.replace("_doctor", ""));
+                doctor.setRole("DOCTOR");
+                doctor.setId(999L);
+            }
+
+            // Find patient by ABHA number
+            Optional<User> patientOpt = userRepository.findByAbhaNumber(abhaNumber);
+            if (patientOpt.isEmpty()) {
+                return Map.of(
+                        "success", false,
+                        "error", "No patient found with ABHA number: " + abhaNumber
+                );
+            }
+
+            User patient = patientOpt.get();
+
+            // Mock health records for demo
+            return Map.of(
+                    "success", true,
+                    "patient", Map.of(
+                            "id", patient.getId(),
+                            "name", patient.getName(),
+                            "abhaNumber", patient.getAbhaNumber(),
+                            "mobile", patient.getMobile(),
+                            "region", patient.getRegion()
+                    ),
+                    "records", Map.of(
+                            "observations", java.util.List.of(
+                                    Map.of(
+                                            "id", "obs_1",
+                                            "type", "Blood Pressure",
+                                            "value", "120/80",
+                                            "unit", "mmHg",
+                                            "date", "2024-01-15",
+                                            "recordedBy", "Dr. Demo"
+                                    ),
+                                    Map.of(
+                                            "id", "obs_2",
+                                            "type", "Weight",
+                                            "value", "70",
+                                            "unit", "kg",
+                                            "date", "2024-01-15",
+                                            "recordedBy", "Dr. Demo"
+                                    )
+                            ),
+                            "immunizations", java.util.List.of(
+                                    Map.of(
+                                            "id", "imm_1",
+                                            "vaccineType", "COVID-19",
+                                            "lotNumber", "LOT123",
+                                            "date", "2024-01-10",
+                                            "administeredBy", "Dr. Demo"
+                                    )
+                            ),
+                            "conditions", java.util.List.of(
+                                    Map.of(
+                                            "id", "cond_1",
+                                            "name", "Hypertension",
+                                            "status", "Active",
+                                            "diagnosedDate", "2024-01-01"
+                                    )
+                            )
+                    ),
+                    "accessedBy", doctor.getName(),
+                    "accessTime", Instant.now().toString()
+            );
+
+        } catch (Exception e) {
+            System.err.println("Error fetching patient records: " + e.getMessage());
+            e.printStackTrace();
+            return Map.of("success", false, "error", "Failed to fetch patient records: " + e.getMessage());
         }
     }
 }

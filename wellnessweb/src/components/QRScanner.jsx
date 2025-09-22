@@ -88,13 +88,116 @@ const QRScanner = () => {
 
       {qrResult && (
         <div style={{
-          padding: '10px 20px',
+          padding: '20px',
           backgroundColor: '#d4edda',
           border: '1px solid #c3e6cb',
           borderRadius: '5px',
           color: '#155724'
         }}>
-          ✅ QR Code: <a href="#" onClick={()=>{navigate('/migrant')}}>{qrResult}</a>
+          <div style={{ marginBottom: '15px' }}>
+            ✅ QR Code Scanned Successfully
+          </div>
+          
+          <div id="scanResult" style={{ 
+            backgroundColor: 'white', 
+            padding: '15px', 
+            borderRadius: '4px',
+            marginBottom: '15px'
+          }}>
+            <p style={{ margin: '5px 0', fontWeight: 'bold' }}>Processing health record data...</p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => {
+                // Show loading state
+                const resultDiv = document.getElementById('scanResult');
+                if (resultDiv) {
+                  resultDiv.innerHTML = qrResult;
+                }
+
+                // Pass the encrypted data to the doctor's scan endpoint
+                const doctorAPI = window.doctorAPI || {};
+                if (doctorAPI.scanQR) {
+                  doctorAPI.scanQR(qrResult)
+                    .then(response => {
+                      if (response.success) {
+                        // Update the scan result div with decrypted data
+                        if (resultDiv) {
+                          const patientInfo = response.patientInfo || {};
+                          const healthRecords = response.healthRecords || {};
+                          
+                          resultDiv.innerHTML = `
+                            <h4 style="margin: 0 0 10px 0">Patient Information:</h4>
+                            <p style="margin: 5px 0"><strong>Name:</strong> ${patientInfo.name || 'N/A'}</p>
+                            <p style="margin: 5px 0"><strong>ABHA:</strong> ${patientInfo.abha || 'N/A'}</p>
+                            <p style="margin: 5px 0"><strong>Region:</strong> ${patientInfo.region || 'N/A'}</p>
+                            
+                            <h4 style="margin: 10px 0">Health Records:</h4>
+                            <p style="margin: 5px 0"><strong>Blood Pressure:</strong> ${healthRecords.bloodPressure || 'N/A'}</p>
+                            <p style="margin: 5px 0"><strong>Temperature:</strong> ${healthRecords.temperature || 'N/A'}</p>
+                            <p style="margin: 5px 0"><strong>Weight:</strong> ${healthRecords.weight || 'N/A'}</p>
+                            <p style="margin: 5px 0"><strong>Last Checkup:</strong> ${healthRecords.lastCheckup || 'N/A'}</p>
+                            <p style="margin: 5px 0"><strong>Status:</strong> ${healthRecords.status || 'N/A'}</p>
+                            
+                            <p style="margin: 10px 0 0 0; color: #666; font-size: 12px">
+                              Scanned at: ${new Date().toLocaleString()}
+                            </p>
+                          `;
+                        }
+                        
+                        // Add a slight delay before navigation to show the data
+                        setTimeout(() => {
+                          navigate(`/doctor/patient/${response.patientInfo.abha}`);
+                        }, 3000);
+                      } else {
+                        if (resultDiv) {
+                          resultDiv.innerHTML = `
+                            <p style="margin: 5px 0; color: #dc3545">
+                              ❌ Error: ${response.error || 'Failed to process QR code'}
+                            </p>
+                          `;
+                        }
+                      }
+                    })
+                    .catch(err => {
+                      console.error('Error scanning QR:', err);
+                      if (resultDiv) {
+                        resultDiv.innerHTML = `
+                          <p style="margin: 5px 0; color: #dc3545">
+                            ❌ Error: Failed to process QR code
+                          </p>
+                        `;
+                      }
+                    });
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              View Full Records
+            </button>
+            
+            <button
+              onClick={() => setQrResult(null)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Scan Another
+            </button>
+          </div>
         </div>
       )}
 
