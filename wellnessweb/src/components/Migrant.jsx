@@ -1,1040 +1,7 @@
-// import React, { useState, useEffect } from "react";
-// import {
-//   User,
-//   FileText,
-//   Download,
-//   Users,
-//   Bell,
-//   QrCode,
-//   Copy,
-//   Check,
-//   Edit3,
-//   Save,
-//   X,
-//   LogOut,
-//   RefreshCw
-// } from "lucide-react";
-
-// // Import language context
-// import { useLanguage } from "../context/LanguageContext";
-
-// // API service for worker endpoints
-// const workerAPI = {
-//   getProfile: async () => {
-//     const token = sessionStorage.getItem('authToken');
-//     const response = await fetch('http://localhost:8081/workers/me', {
-//       headers: {
-//         'Authorization': `Bearer ${token}`,
-//         'Content-Type': 'application/json'
-//       }
-//     });
-//     return response.json();
-//   },
-
-//   getRecords: async () => {
-//     const token = sessionStorage.getItem('authToken');
-//     const response = await fetch('http://localhost:8081/workers/me/records', {
-//       headers: {
-//         'Authorization': `Bearer ${token}`,
-//         'Content-Type': 'application/json'
-//       }
-//     });
-//     return response.json();
-//   },
-
-//   generateQR: async () => {
-//     const token = sessionStorage.getItem('authToken');
-//     const response = await fetch('http://localhost:8081/workers/me/qr', {
-//       headers: {
-//         'Authorization': `Bearer ${token}`,
-//         'Content-Type': 'application/json'
-//       }
-//     });
-//     return response.json();
-//   },
-
-//   getNotifications: async () => {
-//     const token = sessionStorage.getItem('authToken');
-//     const response = await fetch('http://localhost:8081/workers/me/notifications', {
-//       headers: {
-//         'Authorization': `Bearer ${token}`,
-//         'Content-Type': 'application/json'
-//       }
-//     });
-//     return response.json();
-//   },
-
-//   logout: async () => {
-//     const token = sessionStorage.getItem('authToken');
-//     const response = await fetch('http://localhost:8081/workers/logout', {
-//       method: 'POST',
-//       headers: {
-//         'Authorization': `Bearer ${token}`,
-//         'Content-Type': 'application/json'
-//       }
-//     });
-//     return response.json();
-//   }
-// };
-
-// const translations = {
-//   en: {
-//     title: "Migrant Worker Dashboard",
-//     family: "Add Family Members",
-//     profile: "My Profile",
-//     records: "My Health Records",
-//     download: "Download Records",
-//     notifications: "Notifications",
-//     qrCode: "My QR Code",
-//     logout: "Logout",
-//     loading: "Loading...",
-//     error: "Error loading data",
-//     retry: "Retry",
-//     content: {
-//       welcome: "Welcome to your dashboard! Select an option from the navigation above.",
-//       family: "Add or manage your family members here.",
-//       records: "Access your health records here.",
-//       download: "Download your health records here.",
-//       notifications: "Check your notifications here.",
-//       qrCode: "Your unique QR code for health record access. Healthcare providers can scan this to view your records instantly."
-//     },
-//     qrTitle: "Your Health Record QR Code",
-//     qrSubtitle: "Show this QR code to healthcare providers for instant access to your medical records",
-//     copyId: "Copy ABHA ID",
-//     copied: "Copied!",
-//     scanInstructions: "Healthcare providers can scan this QR code to access your health records securely.",
-//     generateNewQR: "Generate New QR Code",
-//     qrExpiry: "Expires at:",
-//     // Profile specific translations
-//     personalDetails: "Personal Details",
-//     addressDetails: "Address Details",
-//     stayingDetails: "Staying in Kerala Details",
-//     otherDetails: "Other Details",
-//     edit: "Edit",
-//     save: "Save",
-//     cancel: "Cancel",
-//     name: "Name",
-//     age: "Age",
-//     gender: "Gender",
-//     occupation: "Occupation",
-//     motherTongue: "Mother Tongue",
-//     nativeState: "Native State",
-//     nativeDistrict: "Native District", 
-//     nativeAddress: "Native Address",
-//     district: "District",
-//     taluk: "Taluk",
-//     village: "Village",
-//     currentAddress: "Current Address",
-//     aadhaarNumber: "Aadhaar Number",
-//     employmentType: "Employment Type",
-//     aloOffice: "ALO Office",
-//     remarks: "Remarks",
-//     phone: "Phone Number",
-//     abhaNumber: "ABHA Number",
-//     region: "Region",
-//     // Records translations
-//     bloodPressure: "Blood Pressure",
-//     weight: "Weight",
-//     temperature: "Temperature",
-//     lastCheckup: "Last Checkup",
-//     status: "Status",
-//     noRecords: "No health records available",
-//     // Notifications translations
-//     noNotifications: "No notifications available",
-//     notificationTitle: "Title",
-//     notificationMessage: "Message",
-//     notificationType: "Type"
-//   },
-//   hi: {
-//     title: "प्रवासी श्रमिक डैशबोर्ड",
-//     family: "परिवार के सदस्य जोड़ें",
-//     profile: "मेरी प्रोफाइल",
-//     records: "मेरे स्वास्थ्य रिकॉर्ड",
-//     download: "रिकॉर्ड डाउनलोड करें",
-//     notifications: "सूचनाएं",
-//     qrCode: "मेरा QR कोड",
-//     logout: "लॉग आउट",
-//     loading: "लोड हो रहा है...",
-//     error: "डेटा लोड करने में त्रुटि",
-//     retry: "पुनः प्रयास करें",
-//     personalDetails: "व्यक्तिगत विवरण",
-//     addressDetails: "पता विवरण", 
-//     stayingDetails: "केरल में रहने का विवरण",
-//     otherDetails: "अन्य विवरण",
-//     edit: "संपादित करें",
-//     save: "सहेजें",
-//     cancel: "रद्द करें",
-//     name: "नाम",
-//     age: "आयु",
-//     gender: "लिंग",
-//     occupation: "व्यवसाय",
-//     phone: "फोन नंबर"
-//   },
-//   ta: {
-//     title: "புலம்பெயர் தொழிலாளர் டாஷ்போர்டு",
-//     family: "குடும்ப உறுப்பினர்களைச் சேர்க்க",
-//     profile: "என் சுயவிவரம்",
-//     records: "என் சுகாதார பதிவுகள்",
-//     download: "பதிவுகளை பதிவிறக்கு",
-//     notifications: "அறிவிப்புகள்",
-//     qrCode: "என் QR குறியீடு",
-//     logout: "வெளியேறு",
-//     loading: "ஏற்றுகிறது...",
-//     error: "தகவல் ஏற்றுவதில் பிழை",
-//     retry: "மீண்டும் முயற்சிக்கவும்",
-//     personalDetails: "தனிப்பட்ட விவரங்கள்",
-//     edit: "திருத்து",
-//     save: "சேமி",
-//     cancel: "ரத்து",
-//     name: "பெயர்",
-//     age: "வயது", 
-//     phone: "தொலைபேசி எண்"
-//   }
-// };
-
-// export default function MigrantWorkerHome() {
-//   const { language, setLanguage } = useLanguage();
-
-//   // State management
-//   const [activeTab, setActiveTab] = useState("welcome");
-//   const [copied, setCopied] = useState(false);
-//   const [isEditing, setIsEditing] = useState(false);
-//   const [loading, setLoading] = useState({
-//     profile: false,
-//     records: false,
-//     notifications: false,
-//     qr: false
-//   });
-//   const [error, setError] = useState({
-//     profile: null,
-//     records: null,
-//     notifications: null,
-//     qr: null
-//   });
-
-//   // Data state
-//   const [authUser, setAuthUser] = useState(null);
-//   const [records, setRecords] = useState(null);
-//   const [notifications, setNotifications] = useState(null);
-//   const [qrData, setQrData] = useState(null);
-//   const [editedProfile, setEditedProfile] = useState({});
-
-//   // Initialize data from sessionStorage and load profile
-//   // Initialize data from sessionStorage (only runs once)
-// useEffect(() => {
-//   const storedUser = sessionStorage.getItem('authUser');
-//   if (storedUser) {
-//     try {
-//       const parsedUser = JSON.parse(storedUser);
-//       setAuthUser(parsedUser);
-//       setEditedProfile(parsedUser);
-//     } catch (error) {
-//       console.error('Error parsing stored user:', error);
-//       handleLogout();
-//     }
-//   } else {
-//     window.location.href = '/login';
-//   }
-// }, []); // Empty dependency array - runs only once
-
-// // Load data based on active tab (but prevent profile API call)
-// useEffect(() => {
-//   if (!authUser) return; // Don't run if no user data
-
-//   switch (activeTab) {
-//     case 'records':
-//       loadRecords();
-//       break;
-//     case 'notifications':
-//       loadNotifications();
-//       break;
-//     case 'qrcode':
-//       loadQRCode();
-//       break;
-//     // Remove 'profile' case to prevent API call and loading fluctuation
-//     default:
-//       break;
-//   }
-// }, [activeTab]); // Only depend on activeTab, not authUser
-
-//   const setLoadingState = (key, value) => {
-//     setLoading(prev => ({ ...prev, [key]: value }));
-//   };
-
-//   const setErrorState = (key, value) => {
-//     setError(prev => ({ ...prev, [key]: value }));
-//   };
-
-//   const loadProfile = async () => {
-//     setLoadingState('profile', true);
-//     setErrorState('profile', null);
-//     try {
-//       const response = await workerAPI.getProfile();
-//       if (response) {
-//         setAuthUser(response);
-//         setEditedProfile(response);
-//         // Update sessionStorage
-//         sessionStorage.setItem('authUser', JSON.stringify(response));
-//       }
-//     } catch (error) {
-//       console.error('Error loading profile:', error);
-//       setErrorState('profile', 'Failed to load profile data');
-//     } finally {
-//       setLoadingState('profile', false);
-//     }
-//   };
-
-//   const loadRecords = async () => {
-//     setLoadingState('records', true);
-//     setErrorState('records', null);
-//     try {
-//       const response = await workerAPI.getRecords();
-//       setRecords(response);
-//     } catch (error) {
-//       console.error('Error loading records:', error);
-//       setErrorState('records', 'Failed to load health records');
-//     } finally {
-//       setLoadingState('records', false);
-//     }
-//   };
-
-//   const loadNotifications = async () => {
-//     setLoadingState('notifications', true);
-//     setErrorState('notifications', null);
-//     try {
-//       const response = await workerAPI.getNotifications();
-//       setNotifications(response);
-//     } catch (error) {
-//       console.error('Error loading notifications:', error);
-//       setErrorState('notifications', 'Failed to load notifications');
-//     } finally {
-//       setLoadingState('notifications', false);
-//     }
-//   };
-
-//   const loadQRCode = async () => {
-//     setLoadingState('qr', true);
-//     setErrorState('qr', null);
-//     try {
-//       const response = await workerAPI.generateQR();
-//       setQrData(response);
-//     } catch (error) {
-//       console.error('Error generating QR code:', error);
-//       setErrorState('qr', 'Failed to generate QR code');
-//     } finally {
-//       setLoadingState('qr', false);
-//     }
-//   };
-
-//   const handleLogout = async () => {
-//     try {
-//       await workerAPI.logout();
-//     } catch (error) {
-//       console.error('Logout error:', error);
-//     } finally {
-//       sessionStorage.clear();
-//       window.location.href = '/login';
-//     }
-//   };
-
-//   const copyToClipboard = async (text) => {
-//     try {
-//       await navigator.clipboard.writeText(text);
-//       setCopied(true);
-//       setTimeout(() => setCopied(false), 2000);
-//     } catch (err) {
-//       console.error('Failed to copy: ', err);
-//     }
-//   };
-
-//   const handleEdit = () => {
-//     setIsEditing(true);
-//     setEditedProfile({ ...authUser });
-//   };
-
-//   const handleSave = () => {
-//     setAuthUser({ ...editedProfile });
-//     setIsEditing(false);
-//     // Update sessionStorage
-//     sessionStorage.setItem('authUser', JSON.stringify(editedProfile));
-//   };
-
-//   const handleCancel = () => {
-//     setEditedProfile({ ...authUser });
-//     setIsEditing(false);
-//   };
-
-//   const handleInputChange = (field, value) => {
-//     setEditedProfile(prev => ({ ...prev, [field]: value }));
-//   };
-
-//   const t = (key) => translations[language]?.[key] || translations.en[key] || key;
-
-//   const ProfileSection = ({ title, children }) => (
-//     <div style={{
-//       backgroundColor: "#f8fafc",
-//       borderRadius: "12px",
-//       padding: "1.5rem",
-//       marginBottom: "1.5rem",
-//       border: "1px solid #e2e8f0"
-//     }}>
-//       <div style={{
-//         backgroundColor: "#a7f3d0",
-//         color: "#064e3b",
-//         padding: "0.75rem 1rem",
-//         borderRadius: "8px",
-//         marginBottom: "1rem",
-//         fontWeight: "600",
-//         fontSize: "1.1rem"
-//       }}>
-//         {title}
-//       </div>
-//       {children}
-//     </div>
-//   );
-
-//   const ProfileField = ({ label, field, type = "text" }) => (
-//     <div style={{ marginBottom: "1rem" }}>
-//       <label style={{
-//         display: "block",
-//         fontSize: "0.875rem",
-//         fontWeight: "500",
-//         color: "#374151",
-//         marginBottom: "0.25rem"
-//       }}>
-//         {label}
-//       </label>
-//       {isEditing ? (
-//         <input
-//           type={type}
-//           value={editedProfile[field] || ""}
-//           onChange={(e) => handleInputChange(field, e.target.value)}
-//           style={{
-//             width: "100%",
-//             padding: "0.5rem",
-//             border: "1px solid #d1d5db",
-//             borderRadius: "6px",
-//             fontSize: "0.875rem"
-//           }}
-//         />
-//       ) : (
-//         <div style={{
-//           padding: "0.5rem",
-//           backgroundColor: "white",
-//           border: "1px solid #e5e7eb",
-//           borderRadius: "6px",
-//           fontSize: "0.875rem",
-//           color: "#374151"
-//         }}>
-//           {authUser?.[field] || "Not specified"}
-//         </div>
-//       )}
-//     </div>
-//   );
-
-//   const LoadingSpinner = () => (
-//     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
-//       <RefreshCw className="animate-spin" size={24} style={{ color: '#3b82f6' }} />
-//       <span style={{ marginLeft: '0.5rem', color: '#6b7280' }}>{t('loading')}</span>
-//     </div>
-//   );
-
-//   const ErrorMessage = ({ message, onRetry }) => (
-//     <div style={{
-//       backgroundColor: '#fef2f2',
-//       border: '1px solid #fecaca',
-//       borderRadius: '8px',
-//       padding: '1rem',
-//       margin: '1rem 0'
-//     }}>
-//       <p style={{ color: '#dc2626', margin: '0 0 0.5rem 0' }}>{message}</p>
-//       <button
-//         onClick={onRetry}
-//         style={{
-//           backgroundColor: '#dc2626',
-//           color: 'white',
-//           border: 'none',
-//           padding: '0.5rem 1rem',
-//           borderRadius: '4px',
-//           cursor: 'pointer'
-//         }}
-//       >
-//         {t('retry')}
-//       </button>
-//     </div>
-//   );
-
-//   const renderProfile = () => {
-//   // Remove the loading and error checks since we're using sessionStorage data
-//   // if (loading.profile) return <LoadingSpinner />;
-//   // if (error.profile) return <ErrorMessage message={error.profile} onRetry={loadProfile} />;
-
-//   if (!authUser) {
-//     return <p style={{ textAlign: 'center', color: '#6b7280' }}>No profile data available</p>;
-//   }
-
-//   return (
-//     <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "left" }}>
-//       <div style={{
-//         display: "flex",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//         marginBottom: "2rem"
-//       }}>
-//         <h2 style={{ color: "#1f2937", margin: 0 }}>{t('profile')}</h2>
-//         {!isEditing ? (
-//           <button
-//             onClick={handleEdit}
-//             style={{
-//               display: "flex",
-//               alignItems: "center",
-//               gap: "0.5rem",
-//               padding: "0.5rem 1rem",
-//               backgroundColor: "#3b82f6",
-//               color: "white",
-//               border: "none",
-//               borderRadius: "6px",
-//               cursor: "pointer",
-//               fontSize: "0.875rem"
-//             }}
-//           >
-//             <Edit3 size={16} />
-//             {t('edit')}
-//           </button>
-//         ) : (
-//           <div style={{ display: "flex", gap: "0.5rem" }}>
-//             <button
-//               onClick={handleSave}
-//               style={{
-//                 display: "flex",
-//                 alignItems: "center",
-//                 gap: "0.5rem",
-//                 padding: "0.5rem 1rem",
-//                 backgroundColor: "#10b981",
-//                 color: "white",
-//                 border: "none",
-//                 borderRadius: "6px",
-//                 cursor: "pointer",
-//                 fontSize: "0.875rem"
-//               }}
-//             >
-//               <Save size={16} />
-//               {t('save')}
-//             </button>
-//             <button
-//               onClick={handleCancel}
-//               style={{
-//                 display: "flex",
-//                 alignItems: "center",
-//                 gap: "0.5rem",
-//                 padding: "0.5rem 1rem",
-//                 backgroundColor: "#ef4444",
-//                 color: "white",
-//                 border: "none",
-//                 borderRadius: "6px",
-//                 cursor: "pointer",
-//                 fontSize: "0.875rem"
-//               }}
-//             >
-//               <X size={16} />
-//               {t('cancel')}
-//             </button>
-//           </div>
-//         )}
-//       </div>
-
-//       <ProfileSection title={t('personalDetails')}>
-//         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-//           <ProfileField label={t('name')} field="name" />
-//           <ProfileField label={t('phone')} field="mobile" />
-//           <ProfileField label={t('abhaNumber')} field="abhaNumber" />
-//           <ProfileField label={t('region')} field="region" />
-//         </div>
-//       </ProfileSection>
-
-//       {authUser?.fhirPatientId && (
-//         <ProfileSection title="Medical Information">
-//           <ProfileField label="FHIR Patient ID" field="fhirPatientId" />
-//         </ProfileSection>
-//       )}
-//     </div>
-//   );
-// };
-
-
-//   const renderRecords = () => {
-//   if (loading.records) return <LoadingSpinner />;
-//   if (error.records) return <ErrorMessage message={error.records} onRetry={loadRecords} />;
-
-//   if (!records || !records.success) {
-//     return <p style={{ textAlign: 'center', color: '#6b7280' }}>{t('noRecords')}</p>;
-//   }
-
-//   const { records: healthData } = records;
-
-//   // Helper function to safely render values
-//   const renderValue = (value) => {
-//     if (typeof value === 'object' && value !== null) {
-//       if (value.value !== undefined) {
-//         return `${value.value} ${value.unit || ''}`;
-//       }
-//       return Object.entries(value)
-//         .map(([key, val]) => `${key}: ${val}`)
-//         .join(', ');
-//     }
-//     return String(value || 'N/A');
-//   };
-
-//   return (
-//     <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-//       <h2 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>{t('records')}</h2>
-      
-//       {healthData?.observations && (
-//         <div style={{
-//           backgroundColor: "#f8fafc",
-//           borderRadius: "12px",
-//           padding: "1.5rem",
-//           marginBottom: "1.5rem",
-//           border: "1px solid #e2e8f0"
-//         }}>
-//           <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>Medical Observations</h3>
-//           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
-//             {Array.isArray(healthData.observations) 
-//               ? healthData.observations.map((observation, index) => (
-//                   <div key={index} style={{
-//                     backgroundColor: "white",
-//                     padding: "1rem",
-//                     borderRadius: "8px",
-//                     border: "1px solid #e5e7eb"
-//                   }}>
-//                     <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-//                       {observation.type || observation.name || `Observation ${index + 1}`}
-//                     </div>
-//                     <div style={{ color: "#6b7280", marginBottom: "0.25rem" }}>
-//                       Value: {renderValue(observation.value || observation)}
-//                     </div>
-//                     {observation.date && (
-//                       <div style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
-//                         Date: {new Date(observation.date).toLocaleDateString()}
-//                       </div>
-//                     )}
-//                   </div>
-//                 ))
-//               : Object.entries(healthData.observations).map(([key, value]) => (
-//                   <div key={key} style={{
-//                     backgroundColor: "white",
-//                     padding: "1rem",
-//                     borderRadius: "8px",
-//                     border: "1px solid #e5e7eb"
-//                   }}>
-//                     <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-//                       {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-//                     </div>
-//                     <div style={{ color: "#6b7280" }}>
-//                       {renderValue(value)}
-//                     </div>
-//                   </div>
-//                 ))
-//             }
-//           </div>
-//         </div>
-//       )}
-
-//       {healthData?.immunizations && (
-//         <div style={{
-//           backgroundColor: "#f8fafc",
-//           borderRadius: "12px",
-//           padding: "1.5rem",
-//           marginBottom: "1.5rem",
-//           border: "1px solid #e2e8f0"
-//         }}>
-//           <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>Immunizations</h3>
-//           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
-//             {Array.isArray(healthData.immunizations)
-//               ? healthData.immunizations.map((immunization, index) => (
-//                   <div key={index} style={{
-//                     backgroundColor: "white",
-//                     padding: "1rem",
-//                     borderRadius: "8px",
-//                     border: "1px solid #e5e7eb"
-//                   }}>
-//                     <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-//                       {immunization.vaccineType || immunization.name || `Vaccine ${index + 1}`}
-//                     </div>
-//                     <div style={{ color: "#6b7280", marginBottom: "0.25rem" }}>
-//                       {immunization.lotNumber && `Lot: ${immunization.lotNumber}`}
-//                     </div>
-//                     {immunization.date && (
-//                       <div style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
-//                         Date: {new Date(immunization.date).toLocaleDateString()}
-//                       </div>
-//                     )}
-//                   </div>
-//                 ))
-//               : Object.entries(healthData.immunizations).map(([key, value]) => (
-//                   <div key={key} style={{
-//                     backgroundColor: "white",
-//                     padding: "1rem",
-//                     borderRadius: "8px",
-//                     border: "1px solid #e5e7eb"
-//                   }}>
-//                     <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-//                       {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-//                     </div>
-//                     <div style={{ color: "#6b7280" }}>
-//                       {renderValue(value)}
-//                     </div>
-//                   </div>
-//                 ))
-//             }
-//           </div>
-//         </div>
-//       )}
-
-//       {(!healthData?.observations && !healthData?.immunizations) && healthData && (
-//         <div style={{
-//           backgroundColor: "#f8fafc",
-//           borderRadius: "12px",
-//           padding: "1.5rem",
-//           border: "1px solid #e2e8f0"
-//         }}>
-//           <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>Health Records</h3>
-//           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
-//             {Object.entries(healthData).map(([key, value]) => (
-//               <div key={key} style={{
-//                 backgroundColor: "white",
-//                 padding: "1rem",
-//                 borderRadius: "8px",
-//                 border: "1px solid #e5e7eb"
-//               }}>
-//                 <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-//                   {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-//                 </div>
-//                 <div style={{ color: "#6b7280" }}>
-//                   {renderValue(value)}
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-
-//  const renderNotifications = () => {
-//   if (loading.notifications) return <LoadingSpinner />;
-//   if (error.notifications) return <ErrorMessage message={error.notifications} onRetry={loadNotifications} />;
-
-//   if (!notifications || !notifications.success) {
-//     return <p style={{ textAlign: 'center', color: '#6b7280' }}>{t('noNotifications')}</p>;
-//   }
-
-//   const notificationList = notifications.notifications || [];
-
-//   if (!Array.isArray(notificationList) || notificationList.length === 0) {
-//     return <p style={{ textAlign: 'center', color: '#6b7280' }}>{t('noNotifications')}</p>;
-//   }
-
-//   return (
-//     <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-//       <h2 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>{t('notifications')}</h2>
-      
-//       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-//         {notificationList.map((notification, index) => (
-//           <div key={notification.id || index} style={{
-//             backgroundColor: "#f8fafc",
-//             borderRadius: "12px",
-//             padding: "1.5rem",
-//             border: "1px solid #e2e8f0",
-//             borderLeft: "4px solid #3b82f6"
-//           }}>
-//             <div style={{
-//               display: "flex",
-//               justifyContent: "space-between",
-//               alignItems: "start",
-//               marginBottom: "0.5rem"
-//             }}>
-//               <h3 style={{ color: "#1f2937", margin: 0 }}>
-//                 {notification.title || 'Notification'}
-//               </h3>
-//               <span style={{
-//                 backgroundColor: "#dbeafe",
-//                 color: "#1e40af",
-//                 padding: "0.25rem 0.5rem",
-//                 borderRadius: "4px",
-//                 fontSize: "0.75rem"
-//               }}>
-//                 {notification.type || 'info'}
-//               </span>
-//             </div>
-//             <p style={{ color: "#6b7280", margin: "0.5rem 0" }}>
-//               {notification.message || 'No message'}
-//             </p>
-//             <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
-//               {notification.createdAt 
-//                 ? new Date(notification.createdAt).toLocaleDateString()
-//                 : 'No date'
-//               }
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-// ;
-
-
-//   const renderQRCode = () => {
-//     if (loading.qr) return <LoadingSpinner />;
-//     if (error.qr) return <ErrorMessage message={error.qr} onRetry={loadQRCode} />;
-
-//     return (
-//       <div style={{
-//         display: "flex",
-//         flexDirection: "column",
-//         alignItems: "center",
-//         gap: "1.5rem",
-//         maxWidth: "400px",
-//         margin: "0 auto",
-//         padding: "2rem",
-//         backgroundColor: "#f8fafc",
-//         borderRadius: "12px",
-//         border: "1px solid #e2e8f0"
-//       }}>
-//         <h2 style={{ color: "#1f2937", marginBottom: "0.5rem" }}>{t('qrTitle')}</h2>
-//         <p style={{ color: "#6b7280", marginBottom: "1.5rem", textAlign: "center" }}>
-//           {t('qrSubtitle')}
-//         </p>
-
-//         {qrData?.success && qrData.qr?.qrCode && (
-//           <div style={{
-//             backgroundColor: "white",
-//             padding: "1rem",
-//             borderRadius: "8px",
-//             border: "2px solid #e2e8f0"
-//           }}>
-//             <img
-//               src={`data:image/png;base64,${qrData.qr.qrCode}`}
-//               alt="Health Record QR Code"
-//               style={{ width: '200px', height: '200px', borderRadius: '8px' }}
-//             />
-//           </div>
-//         )}
-
-//         {qrData?.qr?.expiresAt && (
-//           <p style={{ color: "#f59e0b", fontSize: "0.875rem" }}>
-//             {t('qrExpiry')} {new Date(qrData.qr.expiresAt).toLocaleString()}
-//           </p>
-//         )}
-
-//         <button
-//           onClick={loadQRCode}
-//           style={{
-//             display: "flex",
-//             alignItems: "center",
-//             gap: "0.5rem",
-//             padding: "0.75rem 1rem",
-//             backgroundColor: "#3b82f6",
-//             color: "white",
-//             border: "none",
-//             borderRadius: "6px",
-//             cursor: "pointer",
-//             fontSize: "0.875rem"
-//           }}
-//         >
-//           <RefreshCw size={16} />
-//           {t('generateNewQR')}
-//         </button>
-
-//         {authUser && (
-//           <div style={{
-//             display: "flex",
-//             alignItems: "center",
-//             gap: "0.5rem",
-//             padding: "0.75rem 1rem",
-//             backgroundColor: "white",
-//             border: "1px solid #d1d5db",
-//             borderRadius: "6px",
-//             fontSize: "0.875rem"
-//           }}>
-//             <span style={{ fontWeight: "500" }}>ABHA ID: {authUser.abhaNumber}</span>
-//             <button
-//               onClick={() => copyToClipboard(authUser.abhaNumber)}
-//               style={{
-//                 display: "flex",
-//                 alignItems: "center",
-//                 gap: "0.25rem",
-//                 padding: "0.25rem 0.5rem",
-//                 backgroundColor: copied ? "#10b981" : "#3b82f6",
-//                 color: "white",
-//                 border: "none",
-//                 borderRadius: "4px",
-//                 cursor: "pointer",
-//                 fontSize: "0.75rem",
-//                 transition: "background-color 0.2s"
-//               }}
-//             >
-//               {copied ? <Check size={12} /> : <Copy size={12} />}
-//               {copied ? t('copied') : t('copyId')}
-//             </button>
-//           </div>
-//         )}
-//       </div>
-//     );
-//   };
-
-//   const renderContent = () => {
-//     switch (activeTab) {
-//       case "family":
-//         return <p>{t('content.family')}</p>;
-//       case "profile":
-//         return renderProfile();
-//       case "records":
-//         return renderRecords();
-//       case "download":
-//         return <p>{t('content.download')}</p>;
-//       case "notifications":
-//         return renderNotifications();
-//       case "qrcode":
-//         return renderQRCode();
-//       default:
-//         return <p>{t('content.welcome')}</p>;
-//     }
-//   };
-
-//   if (!authUser) {
-//     return <LoadingSpinner />;
-//   }
-
-//   return (
-//     <div style={{ minHeight: "100vh", backgroundColor: "#ffffff" }}>
-//       {/* Header */}
-//       <div style={{
-//         backgroundColor: "#2563eb",
-//         color: "white",
-//         padding: "1rem 2rem",
-//         display: "flex",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//         boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-//       }}>
-//         <h1>{t('title')}</h1>
-//         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-//           <select
-//             style={{
-//               padding: '8px 12px',
-//               border: 'none',
-//               borderRadius: '6px',
-//               fontSize: '1rem',
-//               backgroundColor: 'white',
-//               color: '#374151'
-//             }}
-//             value={language}
-//             onChange={(e) => setLanguage(e.target.value)}
-//           >
-//             <option value="en">English</option>
-//             <option value="hi">हिंदी</option>
-//             <option value="ta">தமிழ்</option>
-//           </select>
-//           <button
-//             onClick={handleLogout}
-//             style={{
-//               display: 'flex',
-//               alignItems: 'center',
-//               gap: '0.5rem',
-//               padding: '8px 12px',
-//               backgroundColor: '#dc2626',
-//               color: 'white',
-//               border: 'none',
-//               borderRadius: '6px',
-//               cursor: 'pointer',
-//               fontSize: '0.875rem'
-//             }}
-//           >
-//             <LogOut size={16} />
-//             {t('logout')}
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Authenticated User Info */}
-//       {authUser && (
-//         <div style={{
-//           display: 'flex',
-//           gap: '2rem',
-//           alignItems: 'center',
-//           background: '#f0f5ff',
-//           border: '1px solid #d6e4ff',
-//           color: '#1d39c4',
-//           padding: '12px 16px',
-//           margin: '0 16px',
-//           borderRadius: '8px'
-//         }}>
-//           <div><strong>Name:</strong> {authUser.name}</div>
-//           <div><strong>ABHA:</strong> {authUser.abhaNumber}</div>
-//           <div><strong>Region:</strong> {authUser.region}</div>
-//         </div>
-//       )}
-
-//       {/* Navigation Bar */}
-//       <div style={{
-//         backgroundColor: "#f8fafc",
-//         borderBottom: "1px solid #e2e8f0",
-//         display: "flex",
-//         justifyContent: "space-around",
-//         alignItems: "center",
-//         flexWrap: "wrap"
-//       }}>
-//         {[
-//           { key: "family", icon: Users, color: "#10b981", label: t('family') },
-//           { key: "profile", icon: User, color: "#3b82f6", label: t('profile') },
-//           { key: "records", icon: FileText, color: "#6366f1", label: t('records') },
-//           { key: "download", icon: Download, color: "#8b5cf6", label: t('download') },
-//           { key: "qrcode", icon: QrCode, color: "#f59e0b", label: t('qrCode') },
-//           { key: "notifications", icon: Bell, color: "#ef4444", label: t('notifications') }
-//         ].map(({ key, icon: Icon, color, label }) => (
-//           <button
-//             key={key}
-//             style={{
-//               display: "flex",
-//               flexDirection: "column",
-//               alignItems: "center",
-//               padding: "1rem 0.5rem",
-//               cursor: "pointer",
-//               transition: "background-color 0.3s ease",
-//               minWidth: "100px",
-//               textAlign: "center",
-//               border: "none",
-//               backgroundColor: activeTab === key ? "#e2e8f0" : "transparent",
-//               color: "#374151",
-//               fontSize: "0.875rem",
-//               fontWeight: "500"
-//             }}
-//             onClick={() => setActiveTab(key)}
-//             onMouseEnter={(e) => (e.target.style.backgroundColor = "#e2e8f0")}
-//             onMouseLeave={(e) => (e.target.style.backgroundColor = activeTab === key ? "#e2e8f0" : "transparent")}
-//           >
-//             <Icon size={24} style={{ marginBottom: "0.5rem", color }} />
-//             <span>{label}</span>
-//           </button>
-//         ))}
-//       </div>
-
-//       {/* Main Content Area */}
-//       <div style={{ padding: "2rem", textAlign: "center" }}>{renderContent()}</div>
-//     </div>
-//   );
-// }
-
-
 import React, { useState, useEffect } from "react";
 import {
   User,
   FileText,
-  Download,
   Users,
   Bell,
   QrCode,
@@ -1044,7 +11,10 @@ import {
   Save,
   X,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  Trash2,
+  Activity
 } from "lucide-react";
 
 // Import language context
@@ -1112,21 +82,71 @@ const workerAPI = {
 const translations = {
   en: {
     title: "Migrant Worker Dashboard",
-    family: "Add Family Members",
+    family: "Family Members",
     profile: "My Profile",
     records: "My Health Records",
-    download: "Download Records",
     notifications: "Notifications",
     qrCode: "My QR Code",
     logout: "Logout",
     loading: "Loading...",
     error: "Error loading data",
     retry: "Retry",
+    // Family member translations
+    addFamilyMember: "Add Family Member",
+    familyManagement: "Family Management",
+    noFamilyMembers: "No family members added yet",
+    name: "Name",
+    relation: "Relation",
+    age: "Age",
+    contact: "Contact",
+    add: "Add",
+    edit: "Edit",
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete",
+    spouse: "Spouse",
+    son: "Son",
+    daughter: "Daughter",
+    father: "Father",
+    mother: "Mother",
+    brother: "Brother",
+    sister: "Sister",
+    other: "Other",
+    healthy: "Healthy",
+    vaccinationDue: "Vaccination Due",
+    error: "Error loading data",
+    retry: "Retry",
+    // Profile section translations
+    editProfile: "Edit Profile",
+    workerId: "ABHA ID",
+    industry: "Industry",
+    experience: "Experience",
+    status: "Status",
+    active: "Active",
+    location: "Location",
+    phoneNumber: "Phone Number",
+    personalInfo: "Personal Information",
+    // Health Records translations
+    healthRecords: "Health Records",
+    addRecord: "Add Health Record",
+    medicalHistory: "Medical History",
+    weight: "Weight",
+    height: "Height",
+    sugarLevel: "Sugar Level",
+    bloodPressure: "Blood Pressure",
+    doctorNotes: "Doctor's Notes",
+    systolic: "Systolic",
+    diastolic: "Diastolic",
+    date: "Date",
+    kg: "kg",
+    cm: "cm",
+    mgdl: "mg/dL",
+    mmhg: "mmHg",
+    noHealthRecords: "No health records available",
     content: {
       welcome: "Welcome to your dashboard! Select an option from the navigation above.",
       family: "Add or manage your family members here.",
       records: "Access your health records here.",
-      download: "Download your health records here.",
       notifications: "Check your notifications here.",
       qrCode: "Your unique QR code for health record access. Healthcare providers can scan this to view your records instantly."
     },
@@ -1179,16 +199,65 @@ const translations = {
   },
   hi: {
     title: "प्रवासी श्रमिक डैशबोर्ड",
-    family: "परिवार के सदस्य जोड़ें",
+    family: "परिवारिक सदस्य",
     profile: "मेरी प्रोफाइल",
     records: "मेरे स्वास्थ्य रिकॉर्ड",
-    download: "रिकॉर्ड डाउनलोड करें",
     notifications: "सूचनाएं",
     qrCode: "मेरा QR कोड",
     logout: "लॉग आउट",
     loading: "लोड हो रहा है...",
     error: "डेटा लोड करने में त्रुटि",
     retry: "पुनः प्रयास करें",
+    // Family member translations
+    addFamilyMember: "परिवारिक सदस्य जोड़ें",
+    familyManagement: "परिवार प्रबंधन",
+    noFamilyMembers: "अभी तक कोई परिवारिक सदस्य नहीं जोड़े गए",
+    name: "नाम",
+    relation: "रिश्ता",
+    age: "आयु",
+    contact: "संपर्क",
+    add: "जोड़ें",
+    edit: "संपादित करें",
+    save: "सहेजें",
+    cancel: "रद्द करें",
+    delete: "हटाएं",
+    spouse: "पति/पत्नी",
+    son: "बेटा",
+    daughter: "बेटी",
+    father: "पिता",
+    mother: "माता",
+    brother: "भाई",
+    sister: "बहन",
+    other: "अन्य",
+    healthy: "स्वस्थ",
+    vaccinationDue: "टीकाकरण बकाया",
+    // Profile section translations
+    editProfile: "प्रोफाइल संपादित करें",
+    workerId: "श्रमिक आईडी",
+    industry: "उद्योग",
+    experience: "अनुभव",
+    status: "स्थिति",
+    active: "सक्रिय",
+    location: "स्थान",
+    phoneNumber: "फोन नंबर",
+    personalInfo: "व्यक्तिगत जानकारी",
+    // Health Records translations
+    healthRecords: "स्वास्थ्य रिकॉर्ड",
+    addRecord: "स्वास्थ्य रिकॉर्ड जोड़ें",
+    medicalHistory: "चिकित्सा इतिहास",
+    weight: "वजन",
+    height: "ऊंचाई",
+    sugarLevel: "शुगर लेवल",
+    bloodPressure: "ब्लड प्रेशर",
+    doctorNotes: "डॉक्टर की टिप्पणी",
+    systolic: "सिस्टोलिक",
+    diastolic: "डायस्टोलिक",
+    date: "तारीख",
+    kg: "किग्रा",
+    cm: "सेमी",
+    mgdl: "मिग्रा/डीएल",
+    mmhg: "एमएमएचजी",
+    noHealthRecords: "कोई स्वास्थ्य रिकॉर्ड उपलब्ध नहीं",
     personalDetails: "व्यक्तिगत विवरण",
     addressDetails: "पता विवरण", 
     stayingDetails: "केरल में रहने का विवरण",
@@ -1204,16 +273,65 @@ const translations = {
   },
   ta: {
     title: "புலம்பெயர் தொழிலாளர் டாஷ்போர்டு",
-    family: "குடும்ப உறுப்பினர்களைச் சேர்க்க",
+    family: "குடும்ப உறுப்பினர்கள்",
     profile: "என் சுயவிவரம்",
     records: "என் சுகாதார பதிவுகள்",
-    download: "பதிவுகளை பதிவிறக்கு",
     notifications: "அறிவிப்புகள்",
     qrCode: "என் QR குறியீடு",
     logout: "வெளியேறு",
     loading: "ஏற்றுகிறது...",
     error: "தகவல் ஏற்றுவதில் பிழை",
     retry: "மீண்டும் முயற்சிக்கவும்",
+    // Family member translations
+    addFamilyMember: "குடும்ப உறுப்பினரைச் சேர்க்கவும்",
+    familyManagement: "குடும்ப நிர்வாகம்",
+    noFamilyMembers: "இன்னும் குடும்ப உறுப்பினர்கள் சேர்க்கப்படவில்லை",
+    name: "பெயர்",
+    relation: "உறவு",
+    age: "வயது",
+    contact: "தொடர்பு",
+    add: "சேர்க்கவும்",
+    edit: "திருத்து",
+    save: "சேமி",
+    cancel: "ரத்து",
+    delete: "நீக்கு",
+    spouse: "மனைவி/கணவர்",
+    son: "மகன்",
+    daughter: "மகள்",
+    father: "தந்தை",
+    mother: "தாய்",
+    brother: "சகோதரன்",
+    sister: "சகோதரி",
+    other: "மற்றவை",
+    healthy: "ஆரோக்கியமான",
+    vaccinationDue: "தடுப்பூசி தேவை",
+    // Profile section translations
+    editProfile: "சுயவிவரத்தை திருத்து",
+    workerId: "தொழிலாளர் ஐடி",
+    industry: "தொழில்துறை",
+    experience: "அனுபவம்",
+    status: "நிலை",
+    active: "செயலில்",
+    location: "இடம்",
+    phoneNumber: "தொலைபேசி எண்",
+    personalInfo: "தனிப்பட்ட தகவல்",
+    // Health Records translations
+    healthRecords: "சுகாதார பதிவுகள்",
+    addRecord: "சுகாதார பதிவு சேர்க்க",
+    medicalHistory: "மருத்துவ வரலாறு",
+    weight: "எடை",
+    height: "உயரம்",
+    sugarLevel: "சர்க்கரை அளவு",
+    bloodPressure: "இரத்த அழுத்தம்",
+    doctorNotes: "மருத்துவர் குறிப்புகள்",
+    systolic: "சிஸ்டோலிக்",
+    diastolic: "டயஸ்டோலிக்",
+    date: "தேதி",
+    kg: "கிலோ",
+    cm: "செமீ",
+    mgdl: "மிகி/டிஎல்",
+    mmhg: "எம்எம்எச்ஜி",
+    noHealthRecords: "சுகாதார பதிவுகள் எதுவும் கிடைக்கவில்லை",
     personalDetails: "தனிப்பட்ட விவரங்கள்",
     edit: "திருத்து",
     save: "சேமி",
@@ -1231,6 +349,15 @@ export default function MigrantWorkerHome() {
   const [activeTab, setActiveTab] = useState("welcome");
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    mobile: "",
+    abhaNumber: "",
+    region: "",
+    workerId: "",
+    industry: "",
+    experience: ""
+  });
   const [loading, setLoading] = useState({
     profile: false,
     records: false,
@@ -1250,6 +377,55 @@ export default function MigrantWorkerHome() {
   const [notifications, setNotifications] = useState(null);
   const [qrData, setQrData] = useState(null);
   const [editedProfile, setEditedProfile] = useState({});
+  
+  // Family member management state
+  const [familyMembers, setFamilyMembers] = useState([
+    { id: 1, name: "Priya Sharma", relation: "Spouse", age: 26, contact: "+91 9876543211", status: "Healthy" },
+    { id: 2, name: "Ravi Sharma", relation: "Son", age: 8, contact: "-", status: "Vaccination Due" }
+  ]);
+  const [familyForm, setFamilyForm] = useState({
+    name: "",
+    relation: "",
+    age: "",
+    contact: ""
+  });
+  const [editingFamily, setEditingFamily] = useState(null);
+  const [isEditingFamily, setIsEditingFamily] = useState(false);
+
+  // Health records management state
+  const [healthRecords, setHealthRecords] = useState([
+    { 
+      id: 1, 
+      date: "2024-01-15", 
+      weight: "70", 
+      height: "175", 
+      sugarLevel: "95", 
+      systolic: "120", 
+      diastolic: "80", 
+      doctorNotes: "Patient is in good health, continue regular exercise" 
+    },
+    { 
+      id: 2, 
+      date: "2024-02-20", 
+      weight: "69.5", 
+      height: "175", 
+      sugarLevel: "88", 
+      systolic: "118", 
+      diastolic: "78", 
+      doctorNotes: "Slight improvement in blood sugar levels, maintain diet" 
+    }
+  ]);
+  const [healthForm, setHealthForm] = useState({
+    date: "",
+    weight: "",
+    height: "",
+    sugarLevel: "",
+    systolic: "",
+    diastolic: "",
+    doctorNotes: ""
+  });
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [isEditingRecord, setIsEditingRecord] = useState(false);
 
   // Initialize data from sessionStorage (only runs once)
   useEffect(() => {
@@ -1257,8 +433,17 @@ export default function MigrantWorkerHome() {
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        setAuthUser(parsedUser);
-        setEditedProfile(parsedUser);
+        // Ensure we have default values that match the display
+        const userWithDefaults = {
+          ...parsedUser,
+          workerId: parsedUser.workerId || "ID2024001",
+          industry: parsedUser.industry || "Construction", 
+          experience: parsedUser.experience || "3 Years",
+          region: parsedUser.region || "Kochi, Kerala",
+          mobile: parsedUser.mobile || "+91 9876543210"
+        };
+        setAuthUser(userWithDefaults);
+        setEditedProfile(userWithDefaults);
       } catch (error) {
         console.error('Error parsing stored user:', error);
         handleLogout();
@@ -1267,6 +452,21 @@ export default function MigrantWorkerHome() {
       window.location.href = '/login';
     }
   }, []); // Empty dependency array - runs only once
+
+  // Initialize editForm when authUser changes
+  useEffect(() => {
+    if (authUser) {
+      setEditForm({
+        name: authUser.name || "",
+        mobile: authUser.mobile || "",
+        abhaNumber: authUser.abhaNumber || "",
+        region: authUser.region || "",
+        workerId: authUser.workerId || "",
+        industry: authUser.industry || "",
+        experience: authUser.experience || ""
+      });
+    }
+  }, [authUser]);
 
   // Load data based on active tab (but prevent profile API call)
   useEffect(() => {
@@ -1675,254 +875,918 @@ export default function MigrantWorkerHome() {
   );
 
   const renderProfile = () => {
+    const t = (key) => translations[language]?.[key] || translations.en[key] || key;
+
     if (!authUser) {
-      return <p style={{ textAlign: 'center', color: '#6b7280' }}>No profile data available</p>;
+      return (
+        <div style={{
+          backgroundColor: "#f8fafc",
+          minHeight: "100vh",
+          padding: "2rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "3rem",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <User size={48} style={{ color: "#d1d5db", marginBottom: "1rem" }} />
+            <p style={{ color: '#6b7280', margin: 0, fontSize: "1.1rem" }}>No profile data available</p>
+          </div>
+        </div>
+      );
     }
 
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setEditForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "left" }}>
+      <div style={{
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+        padding: "2rem"
+      }}>
+        {/* Header */}
         <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "2rem"
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          borderRadius: "16px",
+          padding: "2rem",
+          color: "white",
+          marginBottom: "2rem",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)"
         }}>
-          <h2 style={{ color: "#1f2937", margin: 0 }}>{t('profile')}</h2>
-          {!isEditing ? (
-            <button
-              onClick={handleEdit}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.5rem 1rem",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontSize: "0.875rem"
-              }}
-            >
-              <Edit3 size={16} />
-              {t('edit')}
-            </button>
-          ) : (
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button
-                onClick={handleSave}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#10b981",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontSize: "0.875rem"
-                }}
-              >
-                <Save size={16} />
-                {t('save')}
-              </button>
-              <button
-                onClick={handleCancel}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontSize: "0.875rem"
-                }}
-              >
-                <X size={16} />
-                {t('cancel')}
-              </button>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}>
+            <div>
+              <h2 style={{
+                margin: 0,
+                fontSize: "1.75rem",
+                fontWeight: "700"
+              }}>
+                {t('profile')}
+              </h2>
+              <p style={{
+                margin: "0.5rem 0 0 0",
+                opacity: 0.9
+              }}>
+                Manage your personal information
+              </p>
             </div>
-          )}
+            
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.75rem 1.5rem",
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  color: "white",
+                  border: "2px solid rgba(255, 255, 255, 0.3)",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  fontWeight: "500",
+                  transition: "all 0.2s",
+                  backdropFilter: "blur(10px)"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "rgba(255, 255, 255, 0.3)";
+                  e.target.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+                  e.target.style.transform = "translateY(0)";
+                }}
+              >
+                <Edit3 size={18} />
+                {t('editProfile')}
+              </button>
+            ) : (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  onClick={() => {
+                    // Save functionality
+                    setAuthUser(prev => ({ ...prev, ...editForm }));
+                    setIsEditing(false);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "rgba(16, 185, 129, 0.9)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    fontWeight: "500",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(16, 185, 129, 1)"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "rgba(16, 185, 129, 0.9)"}
+                >
+                  <Save size={18} />
+                  {t('save')}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditForm({
+                      name: authUser.name || "",
+                      mobile: authUser.mobile || "",
+                      abhaNumber: authUser.abhaNumber || "",
+                      region: authUser.region || "",
+                      workerId: authUser.workerId || "",
+                      industry: authUser.industry || "",
+                      experience: authUser.experience || ""
+                    });
+                    setIsEditing(false);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "rgba(239, 68, 68, 0.9)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    fontWeight: "500",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(239, 68, 68, 1)"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "rgba(239, 68, 68, 0.9)"}
+                >
+                  <X size={18} />
+                  {t('cancel')}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <ProfileSection title={t('personalDetails')}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <ProfileField label={t('name')} field="name" />
-            <ProfileField label={t('phone')} field="mobile" />
-            <ProfileField label={t('abhaNumber')} field="abhaNumber" />
-            <ProfileField label={t('region')} field="region" />
-          </div>
-        </ProfileSection>
+        {/* Profile Content */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "300px 1fr",
+          gap: "2rem",
+          maxWidth: "1200px",
+          margin: "0 auto"
+        }}>
+          {/* Profile Card */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "2rem",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+            height: "fit-content",
+            textAlign: "center"
+          }}>
+            {/* Profile Avatar */}
+            <div style={{
+              width: "120px",
+              height: "120px",
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 1.5rem auto",
+              fontSize: "3rem",
+              fontWeight: "700",
+              color: "white",
+              boxShadow: "0 8px 25px rgba(102, 126, 234, 0.3)"
+            }}>
+              {(authUser.name || "U").charAt(0).toUpperCase()}
+            </div>
 
-        {authUser?.fhirPatientId && (
-          <ProfileSection title="Medical Information">
-            <ProfileField label="FHIR Patient ID" field="fhirPatientId" />
-          </ProfileSection>
-        )}
+            <h3 style={{
+              margin: "0 0 0.5rem 0",
+              color: "#1f2937",
+              fontSize: "1.5rem",
+              fontWeight: "600"
+            }}>
+              {authUser.name || "User"}
+            </h3>
+
+            <p style={{
+              margin: "0 0 1rem 0",
+              color: "#6b7280",
+              fontSize: "1rem"
+            }}>
+              {authUser.workerId || "WID001"}
+            </p>
+
+            {/* Status Badge */}
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.5rem 1rem",
+              backgroundColor: "#dcfce7",
+              color: "#166534",
+              borderRadius: "20px",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+              marginBottom: "1.5rem"
+            }}>
+              <div style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                backgroundColor: "#22c55e"
+              }} />
+              {t('active')}
+            </div>
+
+            {/* Quick Stats */}
+            <div style={{
+              padding: "1rem",
+              backgroundColor: "#f8fafc",
+              borderRadius: "12px",
+              border: "1px solid #e5e7eb"
+            }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "0.5rem"
+              }}>
+                <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>{t('experience')}</span>
+                <span style={{ color: "#1f2937", fontWeight: "600" }}>
+                  {authUser.experience || "2 years"}
+                </span>
+              </div>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>{t('industry')}</span>
+                <span style={{ color: "#1f2937", fontWeight: "600" }}>
+                  {authUser.industry || "Construction"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Details Section */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "2rem",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <h3 style={{
+              margin: "0 0 1.5rem 0",
+              color: "#1f2937",
+              fontSize: "1.25rem",
+              fontWeight: "600",
+              borderBottom: "2px solid #f3f4f6",
+              paddingBottom: "0.75rem"
+            }}>
+              {t('personalInfo')}
+            </h3>
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: "1.5rem"
+            }}>
+              {/* Name Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('name')}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="name"
+                    value={editForm.name || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      transition: "border-color 0.2s",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  />
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {authUser.name || "Not provided"}
+                  </div>
+                )}
+              </div>
+
+              {/* Phone Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('phoneNumber')}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    name="mobile"
+                    value={editForm.mobile || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      transition: "border-color 0.2s",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  />
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {authUser.mobile || "Not provided"}
+                  </div>
+                )}
+              </div>
+
+              {/* ABHA Number Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('abhaNumber')}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="abhaNumber"
+                    value={editForm.abhaNumber || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      transition: "border-color 0.2s",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  />
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {authUser.abhaNumber || "Not provided"}
+                  </div>
+                )}
+              </div>
+
+              {/* Region Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('location')}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="region"
+                    value={editForm.region || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      transition: "border-color 0.2s",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  />
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {authUser.region || "Not provided"}
+                  </div>
+                )}
+              </div>
+
+              {/* ABHA ID Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('workerId')}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="workerId"
+                    value={editForm.workerId || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      transition: "border-color 0.2s",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  />
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {authUser.workerId || "WID001"}
+                  </div>
+                )}
+              </div>
+
+              {/* Industry Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('industry')}
+                </label>
+                {isEditing ? (
+                  <select
+                    name="industry"
+                    value={editForm.industry || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      backgroundColor: "white",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  >
+                    <option value="">Select Industry</option>
+                    <option value="Construction">Construction</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Agriculture">Agriculture</option>
+                    <option value="Mining">Mining</option>
+                    <option value="Textile">Textile</option>
+                    <option value="Other">Other</option>
+                  </select>
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {authUser.industry || "Construction"}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Medical Information */}
+            {authUser?.fhirPatientId && (
+              <div style={{ marginTop: "2rem" }}>
+                <h3 style={{
+                  margin: "0 0 1rem 0",
+                  color: "#1f2937",
+                  fontSize: "1.25rem",
+                  fontWeight: "600",
+                  borderBottom: "2px solid #f3f4f6",
+                  paddingBottom: "0.75rem"
+                }}>
+                  Medical Information
+                </h3>
+                
+                <div style={{
+                  padding: "1rem",
+                  backgroundColor: "#f0f9ff",
+                  borderRadius: "8px",
+                  border: "1px solid #0ea5e9"
+                }}>
+                  <span style={{
+                    color: "#374151",
+                    fontWeight: "500",
+                    fontSize: "0.875rem"
+                  }}>
+                    FHIR Patient ID: 
+                  </span>
+                  <span style={{
+                    color: "#1f2937",
+                    marginLeft: "0.5rem"
+                  }}>
+                    {authUser.fhirPatientId}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
   };
 
   const renderRecords = () => {
-    if (loading.records) return <LoadingSpinner />;
-    if (error.records) return <ErrorMessage message={error.records} onRetry={loadRecords} />;
-
-    if (!records || !records.success) {
-      return <p style={{ textAlign: 'center', color: '#6b7280' }}>{t('noRecords')}</p>;
-    }
-
-    const { records: healthData } = records;
-
-    // Helper function to safely render values
-    const renderValue = (value) => {
-      if (typeof value === 'object' && value !== null) {
-        if (value.value !== undefined) {
-          return `${value.value} ${value.unit || ''}`;
-        }
-        return Object.entries(value)
-          .map(([key, val]) => `${key}: ${val}`)
-          .join(', ');
-      }
-      return String(value || 'N/A');
-    };
+    const t = (key) => translations[language]?.[key] || translations.en[key] || key;
 
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-        <h2 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>{t('records')}</h2>
-        
-        {healthData?.observations && (
-          <div style={{
-            backgroundColor: "#f8fafc",
-            borderRadius: "12px",
-            padding: "1.5rem",
-            marginBottom: "1.5rem",
-            border: "1px solid #e2e8f0"
+      <div style={{
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+        padding: "2rem"
+      }}>
+        {/* Header */}
+        <div style={{
+          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+          borderRadius: "16px",
+          padding: "2rem",
+          color: "white",
+          marginBottom: "2rem",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)"
+        }}>
+          <h2 style={{
+            margin: 0,
+            fontSize: "1.75rem",
+            fontWeight: "700",
+            textAlign: "center"
           }}>
-            <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>Medical Observations</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
-              {Array.isArray(healthData.observations) 
-                ? healthData.observations.map((observation, index) => (
-                    <div key={index} style={{
-                      backgroundColor: "white",
-                      padding: "1rem",
-                      borderRadius: "8px",
-                      border: "1px solid #e5e7eb"
-                    }}>
-                      <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-                        {observation.type || observation.name || `Observation ${index + 1}`}
-                      </div>
-                      <div style={{ color: "#6b7280", marginBottom: "0.25rem" }}>
-                        Value: {renderValue(observation.value || observation)}
-                      </div>
-                      {observation.date && (
-                        <div style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
-                          Date: {new Date(observation.date).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                : Object.entries(healthData.observations).map(([key, value]) => (
-                    <div key={key} style={{
-                      backgroundColor: "white",
-                      padding: "1rem",
-                      borderRadius: "8px",
-                      border: "1px solid #e5e7eb"
-                    }}>
-                      <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-                        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-                      </div>
-                      <div style={{ color: "#6b7280" }}>
-                        {renderValue(value)}
-                      </div>
-                    </div>
-                  ))
-              }
-            </div>
-          </div>
-        )}
+            {t('healthRecords')}
+          </h2>
+          <p style={{
+            margin: "0.5rem 0 0 0",
+            opacity: 0.9,
+            textAlign: "center"
+          }}>
+            View your medical history and health measurements
+          </p>
+        </div>
 
-        {healthData?.immunizations && (
-          <div style={{
-            backgroundColor: "#f8fafc",
-            borderRadius: "12px",
-            padding: "1.5rem",
-            marginBottom: "1.5rem",
-            border: "1px solid #e2e8f0"
+        {/* Health Records List */}
+        <div style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          padding: "2rem",
+          boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+        }}>
+          <h3 style={{
+            margin: "0 0 1.5rem 0",
+            color: "#1f2937",
+            fontSize: "1.25rem",
+            fontWeight: "600"
           }}>
-            <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>Immunizations</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
-              {Array.isArray(healthData.immunizations)
-                ? healthData.immunizations.map((immunization, index) => (
-                    <div key={index} style={{
-                      backgroundColor: "white",
-                      padding: "1rem",
-                      borderRadius: "8px",
-                      border: "1px solid #e5e7eb"
-                    }}>
-                      <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-                        {immunization.vaccineType || immunization.name || `Vaccine ${index + 1}`}
-                      </div>
-                      <div style={{ color: "#6b7280", marginBottom: "0.25rem" }}>
-                        {immunization.lotNumber && `Lot: ${immunization.lotNumber}`}
-                      </div>
-                      {immunization.date && (
-                        <div style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
-                          Date: {new Date(immunization.date).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                : Object.entries(healthData.immunizations).map(([key, value]) => (
-                    <div key={key} style={{
-                      backgroundColor: "white",
-                      padding: "1rem",
-                      borderRadius: "8px",
-                      border: "1px solid #e5e7eb"
-                    }}>
-                      <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-                        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-                      </div>
-                      <div style={{ color: "#6b7280" }}>
-                        {renderValue(value)}
-                      </div>
-                    </div>
-                  ))
-              }
-            </div>
-          </div>
-        )}
+            {t('medicalHistory')} ({healthRecords.length})
+          </h3>
 
-        {(!healthData?.observations && !healthData?.immunizations) && healthData && (
-          <div style={{
-            backgroundColor: "#f8fafc",
-            borderRadius: "12px",
-            padding: "1.5rem",
-            border: "1px solid #e2e8f0"
-          }}>
-            <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>Health Records</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
-              {Object.entries(healthData).map(([key, value]) => (
-                <div key={key} style={{
-                  backgroundColor: "white",
-                  padding: "1rem",
-                  borderRadius: "8px",
-                  border: "1px solid #e5e7eb"
-                }}>
-                  <div style={{ fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>
-                    {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+          {healthRecords.length === 0 ? (
+            <div style={{
+              textAlign: "center",
+              padding: "3rem",
+              color: "#6b7280"
+            }}>
+              <Activity size={48} style={{ color: "#d1d5db", marginBottom: "1rem" }} />
+              <p style={{ margin: 0, fontSize: "1.1rem" }}>{t('noHealthRecords')}</p>
+              <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.9rem", color: "#9ca3af" }}>
+                Medical records will be added by healthcare professionals
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              display: "grid",
+              gap: "1.5rem"
+            }}>
+              {healthRecords.map((record) => (
+                <div
+                  key={record.id}
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "12px",
+                    padding: "1.5rem",
+                    border: "1px solid #e5e7eb",
+                    transition: "all 0.2s",
+                    position: "relative"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 8px 25px rgba(0, 0, 0, 0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "none";
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: "1rem"
+                  }}>
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem"
+                    }}>
+                      <div style={{
+                        backgroundColor: "#10b981",
+                        color: "white",
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.25rem",
+                        fontWeight: "600"
+                      }}>
+                        <Activity size={24} />
+                      </div>
+                      
+                      <div>
+                        <h4 style={{
+                          margin: "0 0 0.25rem 0",
+                          color: "#1f2937",
+                          fontSize: "1.1rem",
+                          fontWeight: "600"
+                        }}>
+                          {t('healthRecords')} - {new Date(record.date).toLocaleDateString()}
+                        </h4>
+                        <p style={{
+                          margin: 0,
+                          color: "#6b7280",
+                          fontSize: "0.875rem"
+                        }}>
+                          ABHA: {authUser?.abhaNumber || "Not provided"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Read-only badge */}
+                    <div style={{
+                      padding: "0.5rem 1rem",
+                      backgroundColor: "#e0f2fe",
+                      color: "#0369a1",
+                      borderRadius: "20px",
+                      fontSize: "0.75rem",
+                      fontWeight: "500"
+                    }}>
+                      View Only
+                    </div>
                   </div>
-                  <div style={{ color: "#6b7280" }}>
-                    {renderValue(value)}
+
+                  {/* Health Metrics Grid */}
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                    gap: "1rem",
+                    marginBottom: "1rem"
+                  }}>
+                    <div style={{
+                      backgroundColor: "white",
+                      padding: "1rem",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                      border: "1px solid #e5e7eb"
+                    }}>
+                      <div style={{
+                        fontSize: "1.5rem",
+                        fontWeight: "700",
+                        color: "#059669",
+                        marginBottom: "0.25rem"
+                      }}>
+                        {record.weight} {t('kg')}
+                      </div>
+                      <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                        {t('weight')}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: "white",
+                      padding: "1rem",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                      border: "1px solid #e5e7eb"
+                    }}>
+                      <div style={{
+                        fontSize: "1.5rem",
+                        fontWeight: "700",
+                        color: "#059669",
+                        marginBottom: "0.25rem"
+                      }}>
+                        {record.height} {t('cm')}
+                      </div>
+                      <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                        {t('height')}
+                      </div>
+                    </div>
+
+                    {record.sugarLevel && (
+                      <div style={{
+                        backgroundColor: "white",
+                        padding: "1rem",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                        border: "1px solid #e5e7eb"
+                      }}>
+                        <div style={{
+                          fontSize: "1.5rem",
+                          fontWeight: "700",
+                          color: record.sugarLevel > 140 ? "#dc2626" : record.sugarLevel < 70 ? "#f59e0b" : "#059669",
+                          marginBottom: "0.25rem"
+                        }}>
+                          {record.sugarLevel} {t('mgdl')}
+                        </div>
+                        <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                          {t('sugarLevel')}
+                        </div>
+                      </div>
+                    )}
+
+                    {record.systolic && record.diastolic && (
+                      <div style={{
+                        backgroundColor: "white",
+                        padding: "1rem",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                        border: "1px solid #e5e7eb"
+                      }}>
+                        <div style={{
+                          fontSize: "1.5rem",
+                          fontWeight: "700",
+                          color: record.systolic > 140 || record.diastolic > 90 ? "#dc2626" : 
+                                record.systolic < 90 || record.diastolic < 60 ? "#f59e0b" : "#059669",
+                          marginBottom: "0.25rem"
+                        }}>
+                          {record.systolic}/{record.diastolic}
+                        </div>
+                        <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                          {t('bloodPressure')} ({t('mmhg')})
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Doctor's Notes */}
+                  {record.doctorNotes && (
+                    <div style={{
+                      backgroundColor: "#fef3c7",
+                      border: "1px solid #f59e0b",
+                      borderRadius: "8px",
+                      padding: "1rem"
+                    }}>
+                      <div style={{
+                        color: "#92400e",
+                        fontWeight: "600",
+                        marginBottom: "0.5rem",
+                        fontSize: "0.875rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem"
+                      }}>
+                        <FileText size={16} />
+                        {t('doctorNotes')}:
+                      </div>
+                      <div style={{ color: "#78350f", fontSize: "0.875rem", lineHeight: "1.5" }}>
+                        {record.doctorNotes}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Record Footer */}
+                  <div style={{
+                    marginTop: "1rem",
+                    padding: "0.75rem",
+                    backgroundColor: "#f3f4f6",
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    color: "#6b7280",
+                    textAlign: "center"
+                  }}>
+                    📅 Recorded on {new Date(record.date).toLocaleDateString()} • 
+                    🏥 Medical records are managed by healthcare professionals
                   </div>
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Information Notice */}
+          <div style={{
+            marginTop: "2rem",
+            padding: "1rem",
+            backgroundColor: "#eff6ff",
+            border: "1px solid #bfdbfe",
+            borderRadius: "8px",
+            textAlign: "center"
+          }}>
+            <div style={{
+              color: "#1e40af",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+              marginBottom: "0.5rem"
+            }}>
+              ℹ️ Medical Records Information
+            </div>
+            <div style={{
+              color: "#1e3a8a",
+              fontSize: "0.8rem",
+              lineHeight: "1.4"
+            }}>
+              Your medical records are maintained by qualified healthcare professionals. 
+              For any updates or corrections, please contact your healthcare provider.
+            </div>
           </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -2285,36 +2149,461 @@ export default function MigrantWorkerHome() {
     );
   };
   const addFamily = () => {
-  return (
-    <div>
-      <form style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "400px" }}>
-        <label>
-          Name:
-          <input type="text" name="name" style={{ padding: "6px", marginLeft: "8px" }} />
-        </label>
+    const t = (key) => translations[language]?.[key] || translations.en[key] || key;
 
-        <label>
-          Relation:
-          <input type="text" name="relation" style={{ padding: "6px", marginLeft: "8px" }} />
-        </label>
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setFamilyForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
 
-        <label>
-          Age:
-          <input type="number" name="age" style={{ padding: "6px", marginLeft: "8px" }} />
-        </label>
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      if (familyForm.name && familyForm.relation && familyForm.age) {
+        const newMember = {
+          id: Date.now(),
+          ...familyForm,
+          status: t('healthy')
+        };
+        setFamilyMembers(prev => [...prev, newMember]);
+        setFamilyForm({ name: "", relation: "", age: "", contact: "" });
+      }
+    };
 
-        <label>
-          Contact:
-          <input type="text" name="contact" style={{ padding: "6px", marginLeft: "8px" }} />
-        </label>
+    const handleEdit = (member) => {
+      setEditingFamily(member);
+      setFamilyForm(member);
+      setIsEditingFamily(true);
+    };
 
-        <button type="submit" style={{ padding: "8px", marginTop: "10px", background: "#2f80ed", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>
-          Add Family Member
-        </button>
-      </form>
-    </div>
-  );
-};
+    const handleUpdate = (e) => {
+      e.preventDefault();
+      if (familyForm.name && familyForm.relation && familyForm.age) {
+        setFamilyMembers(prev => 
+          prev.map(member => 
+            member.id === editingFamily.id ? { ...familyForm, id: editingFamily.id } : member
+          )
+        );
+        setFamilyForm({ name: "", relation: "", age: "", contact: "" });
+        setEditingFamily(null);
+        setIsEditingFamily(false);
+      }
+    };
+
+    const handleCancelEdit = () => {
+      setFamilyForm({ name: "", relation: "", age: "", contact: "" });
+      setEditingFamily(null);
+      setIsEditingFamily(false);
+    };
+
+    const handleDelete = (id) => {
+      setFamilyMembers(prev => prev.filter(member => member.id !== id));
+    };
+
+    return (
+      <div style={{
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+        padding: "2rem"
+      }}>
+        {/* Header */}
+        <div style={{
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          borderRadius: "16px",
+          padding: "2rem",
+          color: "white",
+          marginBottom: "2rem",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)"
+        }}>
+          <h2 style={{
+            margin: 0,
+            fontSize: "1.75rem",
+            fontWeight: "700",
+            textAlign: "center"
+          }}>
+            {t('familyManagement')}
+          </h2>
+          <p style={{
+            margin: "0.5rem 0 0 0",
+            opacity: 0.9,
+            textAlign: "center"
+          }}>
+            Manage your family's healthcare
+          </p>
+        </div>
+
+        {/* Add/Edit Family Member Form */}
+        <div style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          padding: "3rem",
+          marginBottom: "2rem",
+          boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+          maxWidth: "1200px",
+          width: "90%",
+          margin: "0 auto 2rem auto"
+        }}>
+          <h3 style={{
+            margin: "0 0 1.5rem 0",
+            color: "#1f2937",
+            fontSize: "1.25rem",
+            fontWeight: "600",
+            textAlign: "center"
+          }}>
+            {isEditingFamily ? `${t('edit')} ${t('family')}` : t('addFamilyMember')}
+          </h3>
+          
+          <form onSubmit={isEditingFamily ? handleUpdate : handleSubmit}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "1rem",
+              marginBottom: "1.5rem"
+            }}>
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500"
+                }}>
+                  {t('name')}
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={familyForm.name}
+                  onChange={handleInputChange}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "2px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    transition: "border-color 0.2s",
+                    outline: "none"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                  onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500"
+                }}>
+                  {t('relation')}
+                </label>
+                <select
+                  name="relation"
+                  value={familyForm.relation}
+                  onChange={handleInputChange}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "2px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    backgroundColor: "white",
+                    outline: "none"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                  onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  required
+                >
+                  <option value="">{t('relation')}</option>
+                  <option value="spouse">{t('spouse')}</option>
+                  <option value="son">{t('son')}</option>
+                  <option value="daughter">{t('daughter')}</option>
+                  <option value="father">{t('father')}</option>
+                  <option value="mother">{t('mother')}</option>
+                  <option value="brother">{t('brother')}</option>
+                  <option value="sister">{t('sister')}</option>
+                  <option value="other">{t('other')}</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500"
+                }}>
+                  {t('age')}
+                </label>
+                <input
+                  type="number"
+                  name="age"
+                  value={familyForm.age}
+                  onChange={handleInputChange}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "2px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    outline: "none"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                  onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500"
+                }}>
+                  {t('contact')}
+                </label>
+                <input
+                  type="tel"
+                  name="contact"
+                  value={familyForm.contact}
+                  onChange={handleInputChange}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "2px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    outline: "none"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                  onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                />
+              </div>
+            </div>
+
+            <div style={{
+              display: "flex",
+              gap: "1rem",
+              justifyContent: "center"
+            }}>
+              {isEditingFamily && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "#6b7280",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem"
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "#4b5563"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "#6b7280"}
+                >
+                  <X size={18} />
+                  {t('cancel')}
+                </button>
+              )}
+              
+              <button
+                type="submit"
+                style={{
+                  padding: "0.75rem 1.5rem",
+                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "1rem",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  transform: "translateY(0)"
+                }}
+                onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+                onMouseLeave={(e) => e.target.style.transform = "translateY(0)"}
+              >
+                <Plus size={18} />
+                {isEditingFamily ? t('save') : t('add')}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Family Members List */}
+        <div style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          padding: "2rem",
+          boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+        }}>
+          <h3 style={{
+            margin: "0 0 1.5rem 0",
+            color: "#1f2937",
+            fontSize: "1.25rem",
+            fontWeight: "600"
+          }}>
+            {t('family')} ({familyMembers.length})
+          </h3>
+
+          {familyMembers.length === 0 ? (
+            <div style={{
+              textAlign: "center",
+              padding: "3rem",
+              color: "#6b7280"
+            }}>
+              <Users size={48} style={{ color: "#d1d5db", marginBottom: "1rem" }} />
+              <p style={{ margin: 0, fontSize: "1.1rem" }}>{t('noFamilyMembers')}</p>
+            </div>
+          ) : (
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: "1.5rem"
+            }}>
+              {familyMembers.map((member) => (
+                <div
+                  key={member.id}
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "12px",
+                    padding: "1.5rem",
+                    border: "1px solid #e5e7eb",
+                    transition: "all 0.2s",
+                    position: "relative"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 8px 25px rgba(0, 0, 0, 0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "none";
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: "1rem"
+                  }}>
+                    <div style={{
+                      backgroundColor: "#667eea",
+                      color: "white",
+                      width: "50px",
+                      height: "50px",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1.25rem",
+                      fontWeight: "600"
+                    }}>
+                      {member.name.charAt(0).toUpperCase()}
+                    </div>
+                    
+                    <div style={{
+                      display: "flex",
+                      gap: "0.5rem"
+                    }}>
+                      <button
+                        onClick={() => handleEdit(member)}
+                        style={{
+                          padding: "0.5rem",
+                          backgroundColor: "#3b82f6",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          transition: "all 0.2s"
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = "#2563eb"}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = "#3b82f6"}
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      
+                      <button
+                        onClick={() => handleDelete(member.id)}
+                        style={{
+                          padding: "0.5rem",
+                          backgroundColor: "#ef4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          transition: "all 0.2s"
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = "#dc2626"}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = "#ef4444"}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 style={{
+                      margin: "0 0 0.5rem 0",
+                      color: "#1f2937",
+                      fontSize: "1.1rem",
+                      fontWeight: "600"
+                    }}>
+                      {member.name}
+                    </h4>
+                    
+                    <div style={{ color: "#6b7280", fontSize: "0.9rem", lineHeight: "1.5" }}>
+                      <p style={{ margin: "0.25rem 0" }}>
+                        <strong>{t('relation')}:</strong> {t(member.relation) || member.relation}
+                      </p>
+                      <p style={{ margin: "0.25rem 0" }}>
+                        <strong>{t('age')}:</strong> {member.age} years
+                      </p>
+                      {member.contact && member.contact !== "-" && (
+                        <p style={{ margin: "0.25rem 0" }}>
+                          <strong>{t('contact')}:</strong> {member.contact}
+                        </p>
+                      )}
+                    </div>
+
+                    <div style={{
+                      marginTop: "1rem",
+                      padding: "0.5rem 1rem",
+                      backgroundColor: member.status === "Healthy" ? "#dcfce7" : "#fef3c7",
+                      color: member.status === "Healthy" ? "#166534" : "#92400e",
+                      borderRadius: "20px",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      textAlign: "center"
+                    }}>
+                      {member.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -2324,8 +2613,6 @@ export default function MigrantWorkerHome() {
         return renderProfile();
       case "records":
         return renderRecords();
-      case "download":
-        return <p>{t('content.download')}</p>;
       case "notifications":
         return renderNotifications();
       case "qrcode":
@@ -2340,7 +2627,10 @@ export default function MigrantWorkerHome() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#ffffff" }}>
+    <div style={{ 
+      minHeight: "100vh", 
+      backgroundColor: "#f8fafc"
+    }}>
       {/* Header */}
       <div style={{
         backgroundColor: "#2563eb",
@@ -2349,9 +2639,32 @@ export default function MigrantWorkerHome() {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        position: "sticky",
+        top: 0,
+        zIndex: 50
       }}>
-        <h1>{t('title')}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div style={{
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            borderRadius: "50%",
+            padding: "0.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <User size={24} />
+          </div>
+          <div>
+            <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "700" }}>
+              Wellness Web Health Dashboard
+            </h1>
+            <p style={{ margin: 0, fontSize: "0.875rem", opacity: 0.9 }}>
+              Migrant Worker
+            </p>
+          </div>
+        </div>
+        
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <select
             style={{
@@ -2381,7 +2694,8 @@ export default function MigrantWorkerHome() {
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
-              fontSize: '0.875rem'
+              fontSize: '0.875rem',
+              fontWeight: '500'
             }}
           >
             <LogOut size={16} />
@@ -2390,71 +2704,578 @@ export default function MigrantWorkerHome() {
         </div>
       </div>
 
-      {/* Authenticated User Info */}
-      {authUser && (
-        <div style={{
-          display: 'flex',
-          gap: '2rem',
-          alignItems: 'center',
-          background: '#f0f5ff',
-          border: '1px solid #d6e4ff',
-          color: '#1d39c4',
-          padding: '12px 16px',
-          margin: '0 16px',
-          borderRadius: '8px'
-        }}>
-          <div><strong>Name:</strong> {authUser.name}</div>
-          <div><strong>ABHA:</strong> {authUser.abhaNumber}</div>
-          <div><strong>Region:</strong> {authUser.region}</div>
-        </div>
-      )}
-
-      {/* Navigation Bar */}
+      {/* Main Scrollable Content */}
       <div style={{
-        backgroundColor: "#f8fafc",
-        borderBottom: "1px solid #e2e8f0",
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: "2rem",
         display: "flex",
-        justifyContent: "space-around",
-        alignItems: "center",
-        flexWrap: "wrap"
+        flexDirection: "column",
+        gap: "2rem"
       }}>
-        {[
-          { key: "family", icon: Users, color: "#10b981", label: t('family') },
-          { key: "profile", icon: User, color: "#3b82f6", label: t('profile') },
-          { key: "records", icon: FileText, color: "#6366f1", label: t('records') },
-          { key: "download", icon: Download, color: "#8b5cf6", label: t('download') },
-          { key: "qrcode", icon: QrCode, color: "#f59e0b", label: t('qrCode') },
-          { key: "notifications", icon: Bell, color: "#ef4444", label: t('notifications') }
-        ].map(({ key, icon: Icon, color, label }) => (
+        {/* Profile Summary Card */}
+        <div style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          padding: "2rem",
+          boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+          display: "grid",
+          gridTemplateColumns: "auto 1fr auto",
+          gap: "2rem",
+          alignItems: "center"
+        }}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem"
+          }}>
+            <div style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "2rem",
+              fontWeight: "700",
+              color: "white"
+            }}>
+              {(authUser.name || "U").charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h2 style={{
+                margin: "0 0 0.25rem 0",
+                fontSize: "1.5rem",
+                fontWeight: "700",
+                color: "#1f2937"
+              }}>
+                {authUser.name || "User Name"}
+              </h2>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "1rem",
+                color: "#6b7280",
+                fontSize: "0.875rem"
+              }}>
+                <span>📍 {authUser.region || "Kochi, Kerala"}</span>
+                <span>📞 {authUser.mobile || "+91 9876543210"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "1.5rem",
+            textAlign: "center"
+          }}>
+            <div>
+              <div style={{
+                fontSize: "1.25rem",
+                fontWeight: "700",
+                color: "#059669",
+                marginBottom: "0.25rem"
+              }}>
+                {authUser.abhaNumber || "91-1234-5678-9012"}
+              </div>
+              <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                ABHA ID
+              </div>
+            </div>
+            
+            <div>
+              <div style={{
+                fontSize: "1.25rem",
+                fontWeight: "700",
+                color: "#3b82f6",
+                marginBottom: "0.25rem"
+              }}>
+                {authUser.industry || "Construction"}
+              </div>
+              <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                Industry
+              </div>
+            </div>
+            
+            <div>
+              <div style={{
+                fontSize: "1.25rem",
+                fontWeight: "700",
+                color: "#f59e0b",
+                marginBottom: "0.25rem"
+              }}>
+                {authUser.experience || "3 Years"}
+              </div>
+              <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                Experience
+              </div>
+            </div>
+          </div>
+
+          <div style={{ textAlign: "right" }}>
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.5rem 1rem",
+              backgroundColor: "#dcfce7",
+              color: "#166534",
+              borderRadius: "20px",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+              marginBottom: "1rem"
+            }}>
+              <div style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                backgroundColor: "#22c55e"
+              }} />
+              Active
+            </div>
+            <button
+              onClick={() => setActiveTab('profile')}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.5rem 1rem",
+                backgroundColor: "#3b82f6",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+                fontWeight: "500"
+              }}
+            >
+              <Edit3 size={16} />
+              Edit Profile
+            </button>
+          </div>
+        </div>
+
+        {/* Two Column Layout for Health Records and Family Members */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1.2fr 1fr",
+          gap: "2rem"
+        }}>
+          {/* Health Records Section */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "2rem",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "1.5rem"
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}>
+                <Activity size={24} style={{ color: "#10b981" }} />
+                <h3 style={{
+                  margin: 0,
+                  fontSize: "1.25rem",
+                  fontWeight: "600",
+                  color: "#1f2937"
+                }}>
+                  Health Records
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveTab('records')}
+                style={{
+                  padding: "0.5rem 1rem",
+                  backgroundColor: "#f3f4f6",
+                  color: "#374151",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "0.75rem"
+                }}
+              >
+                View All
+              </button>
+            </div>
+            
+            <p style={{
+              color: "#6b7280",
+              fontSize: "0.875rem",
+              marginBottom: "1rem"
+            }}>
+              Your recent medical history
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {healthRecords.slice(0, 3).map((record) => (
+                <div
+                  key={record.id}
+                  style={{
+                    padding: "1rem",
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e7eb"
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: "0.5rem"
+                  }}>
+                    <div style={{
+                      fontWeight: "600",
+                      color: "#1f2937",
+                      fontSize: "0.875rem"
+                    }}>
+                      Medical Checkup
+                    </div>
+                    <div style={{
+                      padding: "0.25rem 0.75rem",
+                      backgroundColor: record.sugarLevel && parseInt(record.sugarLevel) > 100 ? "#fef3c7" : "#dcfce7",
+                      color: record.sugarLevel && parseInt(record.sugarLevel) > 100 ? "#92400e" : "#166534",
+                      borderRadius: "12px",
+                      fontSize: "0.75rem",
+                      fontWeight: "500"
+                    }}>
+                      {record.sugarLevel && parseInt(record.sugarLevel) > 100 ? "Attention" : "Normal"}
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: "0.5rem",
+                    marginBottom: "0.5rem",
+                    fontSize: "0.75rem",
+                    color: "#374151"
+                  }}>
+                    <div>
+                      <span style={{ fontWeight: "500" }}>Weight:</span> {record.weight} kg
+                    </div>
+                    <div>
+                      <span style={{ fontWeight: "500" }}>Height:</span> {record.height} cm
+                    </div>
+                    <div>
+                      <span style={{ fontWeight: "500" }}>Sugar:</span> {record.sugarLevel} mg/dL
+                    </div>
+                    <div>
+                      <span style={{ fontWeight: "500" }}>BP:</span> {record.systolic}/{record.diastolic}
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    fontSize: "0.75rem",
+                    color: "#6b7280",
+                    marginBottom: "0.5rem"
+                  }}>
+                    {new Date(record.date).toLocaleDateString()} • Medical Record #{record.id}
+                  </div>
+                  
+                  {record.doctorNotes && (
+                    <div style={{
+                      fontSize: "0.75rem",
+                      color: "#374151",
+                      fontStyle: "italic",
+                      backgroundColor: "#f1f5f9",
+                      padding: "0.5rem",
+                      borderRadius: "4px",
+                      borderLeft: "3px solid #3b82f6"
+                    }}>
+                      <strong>Doctor's Notes:</strong> "{record.doctorNotes}"
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Family Members Section */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "2rem",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "1.5rem"
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}>
+                <Users size={24} style={{ color: "#3b82f6" }} />
+                <h3 style={{
+                  margin: 0,
+                  fontSize: "1.25rem",
+                  fontWeight: "600",
+                  color: "#1f2937"
+                }}>
+                  Family Members
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveTab('family')}
+                style={{
+                  padding: "0.5rem 1rem",
+                  backgroundColor: "#f3f4f6",
+                  color: "#374151",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "0.75rem"
+                }}
+              >
+                Manage
+              </button>
+            </div>
+            
+            <p style={{
+              color: "#6b7280",
+              fontSize: "0.875rem",
+              marginBottom: "1rem"
+            }}>
+              Manage your family's healthcare
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {familyMembers.slice(0, 3).map((member) => (
+                <div
+                  key={member.id}
+                  style={{
+                    padding: "1rem",
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e7eb"
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: "0.5rem"
+                  }}>
+                    <div style={{
+                      fontWeight: "600",
+                      color: "#1f2937",
+                      fontSize: "0.875rem"
+                    }}>
+                      {member.name}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <button
+                        onClick={() => {
+                          setEditingFamily(member);
+                          setIsEditingFamily(true);
+                          setActiveTab('family');
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "24px",
+                          height: "24px",
+                          backgroundColor: "#e5e7eb",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#d1d5db";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "#e5e7eb";
+                        }}
+                      >
+                        <Edit3 size={12} style={{ color: "#374151" }} />
+                      </button>
+                      <div style={{
+                        padding: "0.25rem 0.75rem",
+                        backgroundColor: member.status === "Healthy" ? "#dcfce7" : "#fef3c7",
+                        color: member.status === "Healthy" ? "#166534" : "#92400e",
+                        borderRadius: "12px",
+                        fontSize: "0.75rem",
+                        fontWeight: "500"
+                      }}>
+                        {member.status}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    fontSize: "0.75rem",
+                    color: "#6b7280"
+                  }}>
+                    {t(member.relation) || member.relation} • Age {member.age}
+                  </div>
+                </div>
+              ))}
+              
+              <button
+                onClick={() => setActiveTab('family')}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                  backgroundColor: "#dbeafe",
+                  color: "#1d4ed8",
+                  border: "2px dashed #3b82f6",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  width: "100%"
+                }}
+              >
+                <Plus size={18} />
+                Add Family Member
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "1rem"
+        }}>
           <button
-            key={key}
+            onClick={() => setActiveTab('qrcode')}
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              padding: "1rem 0.5rem",
+              padding: "1.5rem",
+              backgroundColor: "white",
+              border: "2px solid #f59e0b",
+              borderRadius: "12px",
               cursor: "pointer",
-              transition: "background-color 0.3s ease",
-              minWidth: "100px",
-              textAlign: "center",
-              border: "none",
-              backgroundColor: activeTab === key ? "#e2e8f0" : "transparent",
-              color: "#374151",
-              fontSize: "0.875rem",
-              fontWeight: "500"
+              transition: "all 0.2s",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)"
             }}
-            onClick={() => setActiveTab(key)}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#e2e8f0")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = activeTab === key ? "#e2e8f0" : "transparent")}
+            onMouseEnter={(e) => {
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 8px 25px rgba(245, 158, 11, 0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.05)";
+            }}
           >
-            <Icon size={24} style={{ marginBottom: "0.5rem", color }} />
-            <span>{label}</span>
+            <QrCode size={32} style={{ color: "#f59e0b", marginBottom: "0.5rem" }} />
+            <span style={{ fontWeight: "600", color: "#1f2937" }}>My QR Code</span>
+            <span style={{ fontSize: "0.75rem", color: "#6b7280", textAlign: "center" }}>
+              Quick access to your health info
+            </span>
           </button>
-        ))}
+
+          <button
+            onClick={() => setActiveTab('notifications')}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "1.5rem",
+              backgroundColor: "white",
+              border: "2px solid #ef4444",
+              borderRadius: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)"
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 8px 25px rgba(239, 68, 68, 0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.05)";
+            }}
+          >
+            <Bell size={32} style={{ color: "#ef4444", marginBottom: "0.5rem" }} />
+            <span style={{ fontWeight: "600", color: "#1f2937" }}>Notifications</span>
+            <span style={{ fontSize: "0.75rem", color: "#6b7280", textAlign: "center" }}>
+              Health alerts and reminders
+            </span>
+          </button>
+        </div>
       </div>
 
-      {/* Main Content Area */}
-      <div style={{ padding: "2rem", textAlign: "center" }}>{renderContent()}</div>
+      {/* Modal/Overlay for detailed views */}
+      {activeTab !== 'welcome' && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "2rem"
+        }}
+        onClick={() => setActiveTab('welcome')}
+        >
+          <div 
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              maxWidth: "95vw",
+              width: "1400px",
+              maxHeight: "90vh",
+              overflow: "auto",
+              position: "relative"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setActiveTab('welcome')}
+              style={{
+                position: "absolute",
+                top: "1rem",
+                right: "1rem",
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                backgroundColor: "#f3f4f6",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10
+              }}
+            >
+              <X size={16} />
+            </button>
+            
+            {activeTab === "family" && addFamily()}
+            {activeTab === "profile" && renderProfile()}
+            {activeTab === "records" && renderRecords()}
+            {activeTab === "notifications" && renderNotifications()}
+            {activeTab === "qrcode" && renderQRCode()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

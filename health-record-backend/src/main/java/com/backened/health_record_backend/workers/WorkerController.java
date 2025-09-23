@@ -232,44 +232,6 @@ public class WorkerController {
         }
     }
 
-    @GetMapping("/me/notifications")
-    public ResponseEntity<Map<String, Object>> getNotifications(@RequestHeader("Authorization") String authHeader) {
-        try {
-            String token = authHeader.replace("Bearer ", "");
-            String abha = token.replace("demo-token-", "");
-
-            User worker = userService.findByAbhaNumber(abha);
-
-            if (worker == null) {
-                return ResponseEntity.status(401).body(Map.of(
-                        "success", false,
-                        "error", "Worker not found"
-                ));
-            }
-
-            List<Notification> notifications;
-            try {
-                notifications = notificationRepository.findActiveNotificationsForRegion(worker.getRegion());
-            } catch (Exception e) {
-                notifications = List.of();
-            }
-
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "worker", worker.getName(),
-                    "region", worker.getRegion(),
-                    "totalNotifications", notifications.size(),
-                    "notifications", notifications
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                    "success", false,
-                    "error", "Failed to fetch notifications: " + e.getMessage()
-            ));
-        }
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(@RequestHeader("Authorization") String authHeader) {
         try {
@@ -285,6 +247,36 @@ public class WorkerController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Logged out"
+            ));
+        }
+    }
+
+    @GetMapping("/me/notifications")
+    public ResponseEntity<Map<String, Object>> getNotifications(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String abha = token.replace("demo-token-", "");
+
+            User worker = userService.findByAbhaNumber(abha);
+
+            if (worker == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "success", false,
+                        "error", "Worker not found"
+                ));
+            }
+
+            // Get notifications for worker's region or global notifications
+            List<Notification> notifications = notificationRepository.findActiveNotificationsForRegion(worker.getRegion());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "notifications", notifications
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "error", "Failed to fetch notifications: " + e.getMessage()
             ));
         }
     }

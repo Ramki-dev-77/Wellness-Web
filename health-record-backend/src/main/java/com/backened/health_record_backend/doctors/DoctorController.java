@@ -1,9 +1,11 @@
 package com.backened.health_record_backend.doctors;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +20,8 @@ import com.backened.health_record_backend.Qr.QrService;
 import com.backened.health_record_backend.auth.EmailService;
 import com.backened.health_record_backend.fhirmock.FhirResourceService;
 import com.backened.health_record_backend.fhirmock.FhirService;
+import com.backened.health_record_backend.officials.Notification;
+import com.backened.health_record_backend.officials.NotificationRepository;
 import com.backened.health_record_backend.users.User;
 import com.backened.health_record_backend.users.UserRepository;
 import com.backened.health_record_backend.users.UserService;
@@ -34,10 +38,12 @@ public class DoctorController {
     private final FhirResourceService fhirResourceService;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
     public DoctorController(UserService userService, QrService qrService, FhirService fhirService,
                             ScanLogRepository scanLogRepository, FhirResourceService fhirResourceService,
-                            EmailService emailService, UserRepository userRepository) {
+                            EmailService emailService, UserRepository userRepository,
+                            NotificationRepository notificationRepository) {
         this.userService = userService;
         this.qrService = qrService;
         this.fhirService = fhirService;
@@ -45,6 +51,7 @@ public class DoctorController {
         this.fhirResourceService = fhirResourceService;
         this.emailService = emailService;
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     @PostMapping("/email-input")
@@ -278,6 +285,44 @@ public class DoctorController {
                     "success", true,
                     "message", "Logged out"
             );
+        }
+    }
+
+    @GetMapping("/me/notifications")
+    public ResponseEntity<Map<String, Object>> getNotifications(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String abha = token.replace("demo-token-", "");
+
+            User doctor = userService.findByAbhaNumber(abha);
+
+            if (doctor == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "success", false,
+                        "error", "Doctor not found"
+                ));
+            }
+
+            List<Notification> notifications;
+            try {
+                notifications = notificationRepository.findActiveNotificationsForRegion(doctor.getRegion());
+            } catch (Exception e) {
+                notifications = List.of();
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "doctor", doctor.getName(),
+                    "region", doctor.getRegion(),
+                    "totalNotifications", notifications.size(),
+                    "notifications", notifications
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "error", "Failed to fetch notifications: " + e.getMessage()
+            ));
         }
     }
 

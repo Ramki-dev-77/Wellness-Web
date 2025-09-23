@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Users,
-  FileText,
-  Download,
-  CreditCard,
   Bell,
   QrCode,
   User,
@@ -80,17 +76,6 @@ const officialAPI = {
     return response.json();
   },
 
-  getWorkersByRegion: async (region) => {
-    const token = sessionStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:8081/official/workers/region/${region}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return response.json();
-  },
-
   logout: async () => {
     const token = sessionStorage.getItem('authToken');
     const response = await fetch('http://localhost:8081/official/logout', {
@@ -130,10 +115,6 @@ const translations = {
   en: {
     title: "Health Official Dashboard",
     qrScan: "QR Scanner",
-    workerManagement: "Worker Management",
-    reports: "Reports",
-    documents: "Documents",
-    registrations: "Registrations",
     notifications: "Notifications",
     profile: "My Profile",
     logout: "Logout",
@@ -196,10 +177,6 @@ const translations = {
   hi: {
     title: "स्वास्थ्य अधिकारी डैशबोर्ड",
     qrScan: "क्यूआर स्कैनर",
-    workerManagement: "श्रमिक प्रबंधन",
-    reports: "रिपोर्ट",
-    documents: "दस्तावेज़",
-    registrations: "पंजीकरण",
     notifications: "सूचनाएं",
     profile: "मेरी प्रोफाइल",
     logout: "लॉग आउट",
@@ -210,10 +187,6 @@ const translations = {
   ta: {
     title: "ஆரோக்கிய அதிகாரி டாஷ்போர்டு",
     qrScan: "QR ஸ்கேனர்",
-    workerManagement: "தொழிலாளர் மேலாண்மை",
-    reports: "அறிக்கைகள்",
-    documents: "ஆவணங்கள்",
-    registrations: "பதிவுகள்",
     notifications: "அறிவிப்புகள்",
     profile: "என் சுயவிவரம்",
     logout: "வெளியேறு",
@@ -224,10 +197,6 @@ const translations = {
   ml: {
     title: "ആരോഗ്യ ഉദ്യോഗസ്ഥ ഡാഷ്ബോർഡ്",
     qrScan: "QR സ്കാനർ",
-    workerManagement: "തൊഴിലാളി മാനേജ്മെന്റ്",
-    reports: "റിപ്പോർട്ടുകൾ",
-    documents: "രേഖകൾ",
-    registrations: "രജിസ്ട്രേഷനുകൾ",
     notifications: "അറിയിപ്പുകൾ",
     profile: "എന്റെ പ്രൊഫൈൽ",
     logout: "പുറത്തുകടക്കുക",
@@ -245,24 +214,18 @@ export default function HealthOfficialHome() {
   // Loading and error states
   const [loading, setLoading] = useState({
     profile: false,
-    notifications: false,
-    workers: false
+    notifications: false
   });
-  
+
   const [error, setError] = useState({
     profile: null,
-    notifications: null,
-    workers: null
+    notifications: null
   });
 
   // Data states
   const [officialProfile, setOfficialProfile] = useState(null);
   const [profileFormData, setProfileFormData] = useState({});
-  const [notifications, setNotifications] = useState([]);
-  const [workers, setWorkers] = useState([]);
-  const [selectedRegion, setSelectedRegion] = useState('');
-
-  // Form states
+  const [notifications, setNotifications] = useState([]);  // Form states
   const [showNotificationForm, setShowNotificationForm] = useState(false);
   const [editingNotification, setEditingNotification] = useState(null);
   const [notificationForm, setNotificationForm] = useState({
@@ -314,9 +277,6 @@ export default function HealthOfficialHome() {
         case 'notifications':
           loadNotifications();
           break;
-        case 'workerManagement':
-          loadWorkers();
-          break;
         default:
           break;
       }
@@ -347,28 +307,17 @@ export default function HealthOfficialHome() {
     setErrorState('notifications', null);
     try {
       const response = await officialAPI.getNotifications();
-      setNotifications(response);
+      if (response.success && response.notifications) {
+        setNotifications(response.notifications);
+      } else {
+        setNotifications([]);
+      }
     } catch (error) {
       console.error('Error loading notifications:', error);
       setErrorState('notifications', 'Failed to load notifications');
+      setNotifications([]);
     } finally {
       setLoadingState('notifications', false);
-    }
-  };
-
-  const loadWorkers = async () => {
-    if (!selectedRegion) return;
-    
-    setLoadingState('workers', true);
-    setErrorState('workers', null);
-    try {
-      const response = await officialAPI.getWorkersByRegion(selectedRegion);
-      setWorkers(response);
-    } catch (error) {
-      console.error('Error loading workers:', error);
-      setErrorState('workers', 'Failed to load workers');
-    } finally {
-      setLoadingState('workers', false);
     }
   };
 
@@ -390,15 +339,17 @@ export default function HealthOfficialHome() {
       if (response.success || response.notification) {
         setShowNotificationForm(false);
         setNotificationForm({ title: '', message: '', region: '', type: 'announcement' });
-        loadNotifications();
         setErrorState('notifications', null);
+        
+        // Reload notifications to show the newly created one
+        await loadNotifications();
       } else {
         setErrorState('notifications', response.error || 'Failed to create notification');
+        setLoadingState('notifications', false);
       }
     } catch (error) {
       console.error('Error creating notification:', error);
       setErrorState('notifications', 'Failed to create notification');
-    } finally {
       setLoadingState('notifications', false);
     }
   };
@@ -757,62 +708,10 @@ export default function HealthOfficialHome() {
     );
   };
 
-  // Worker Management Component
-  const WorkerManagementSection = () => (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
-      <h3>{t('workerManagement')}</h3>
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>{t('selectRegion')}</label>
-        <select
-          value={selectedRegion}
-          onChange={(e) => {
-            setSelectedRegion(e.target.value);
-            if (e.target.value) {
-              loadWorkers();
-            }
-          }}
-          style={{ width: '100%', maxWidth: '300px', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
-        >
-          <option value="">{t('selectRegion')}</option>
-          <option value="Kerala">Kerala</option>
-          <option value="Tamil Nadu">Tamil Nadu</option>
-          <option value="Karnataka">Karnataka</option>
-        </select>
-      </div>
-
-      {loading.workers && <LoadingSpinner />}
-      {error.workers && <ErrorMessage message={error.workers} onRetry={loadWorkers} />}
-
-      {workers && workers.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-          {workers.map((worker, index) => (
-            <div key={index} style={{
-              backgroundColor: '#f8fafc',
-              padding: '1rem',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0'
-            }}>
-              <h4 style={{ margin: '0 0 0.5rem 0' }}>{worker.name}</h4>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#6b7280' }}>
-                ABHA: {worker.abhaNumber}
-              </p>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#6b7280' }}>
-                Mobile: {worker.mobile}
-              </p>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#6b7280' }}>
-                Region: {worker.region}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   // Search Component
   const SearchSection = () => (
     <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "1rem" }}>
-      <h3>{t('search')}</h3>
+      {/* <h3>{t('search')}</h3> */}
       
       {/* Search Forms */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
@@ -1016,121 +915,477 @@ export default function HealthOfficialHome() {
     </div>
   );
 
-  // Profile Component (using existing structure)
+  // Profile Component (migrant-style implementation)
   const ProfileSection = () => {
     if (!officialProfile) {
-      return <p style={{ textAlign: 'center', color: '#6b7280' }}>No profile data available</p>;
+      return (
+        <div style={{
+          backgroundColor: "#f8fafc",
+          minHeight: "100vh",
+          padding: "2rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "3rem",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <User size={48} style={{ color: "#d1d5db", marginBottom: "1rem" }} />
+            <p style={{ color: '#6b7280', margin: 0, fontSize: "1.1rem" }}>No profile data available</p>
+          </div>
+        </div>
+      );
     }
 
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setProfileFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-          <h2 style={{ color: "#1f2937", margin: 0 }}>{t('profile')}</h2>
-          {!isEditingProfile ? (
-            <button
-              onClick={handleProfileEdit}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.5rem 1rem",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
-              }}
-            >
-              <Edit3 size={16} />
-              {t('profileSection.edit')}
-            </button>
-          ) : (
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button
-                onClick={handleProfileSave}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#10b981",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer"
-                }}
-              >
-                <Save size={16} />
-                {t('profileSection.save')}
-              </button>
-              <button
-                onClick={handleProfileCancel}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer"
-                }}
-              >
-                <X size={16} />
-                {t('profileSection.cancel')}
-              </button>
+      <div style={{
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+        padding: "2rem"
+      }}>
+        {/* Header */}
+        <div style={{
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          borderRadius: "16px",
+          padding: "2rem",
+          color: "white",
+          marginBottom: "2rem",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)"
+        }}>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}>
+            <div>
+              <h2 style={{
+                margin: 0,
+                fontSize: "1.75rem",
+                fontWeight: "700"
+              }}>
+                {t('profile')}
+              </h2>
+              <p style={{
+                margin: "0.5rem 0 0 0",
+                opacity: 0.9
+              }}>
+                Manage your health official information
+              </p>
             </div>
-          )}
+            
+            {!isEditingProfile ? (
+              <button
+                onClick={handleProfileEdit}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.75rem 1.5rem",
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  color: "white",
+                  border: "2px solid rgba(255, 255, 255, 0.3)",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  fontWeight: "500",
+                  transition: "all 0.2s",
+                  backdropFilter: "blur(10px)"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "rgba(255, 255, 255, 0.3)";
+                  e.target.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+                  e.target.style.transform = "translateY(0)";
+                }}
+              >
+                <Edit3 size={18} />
+                {t('Edit Profile')}
+              </button>
+            ) : (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  onClick={handleProfileSave}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "rgba(16, 185, 129, 0.9)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    fontWeight: "500",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(16, 185, 129, 1)"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "rgba(16, 185, 129, 0.9)"}
+                >
+                  <Save size={18} />
+                  {t('Save')}
+                </button>
+                <button
+                  onClick={handleProfileCancel}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "rgba(239, 68, 68, 0.9)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    fontWeight: "500",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(239, 68, 68, 1)"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "rgba(239, 68, 68, 0.9)"}
+                >
+                  <X size={18} />
+                  {t('Cancel')}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Personal Details Section */}
-        <div style={{ backgroundColor: "#f8fafc", borderRadius: "12px", padding: "1.5rem", marginBottom: "1.5rem" }}>
-          <h3 style={{ color: "#4a5568", marginBottom: "1rem", backgroundColor: "#dbeafe", padding: "0.5rem", borderRadius: "6px" }}>
-            {t('profileSection.personalDetails')}
-          </h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
-            <div>
-              <label style={{ display: "block", fontWeight: "500", marginBottom: "0.5rem" }}>
-                {t('profileSection.name')}
-              </label>
-              {isEditingProfile ? (
-                <input
-                  type="text"
-                  value={profileFormData.name || ''}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  style={{ width: "100%", padding: "0.5rem", border: "1px solid #d1d5db", borderRadius: "4px" }}
-                />
-              ) : (
-                <p style={{ margin: 0, padding: "0.5rem 0" }}>{officialProfile.name || 'Not specified'}</p>
-              )}
+        {/* Profile Content */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "300px 1fr",
+          gap: "2rem",
+          maxWidth: "1200px",
+          margin: "0 auto"
+        }}>
+          {/* Profile Card */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "2rem",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+            height: "fit-content",
+            textAlign: "center"
+          }}>
+            {/* Profile Avatar */}
+            <div style={{
+              width: "120px",
+              height: "120px",
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 1.5rem auto",
+              fontSize: "3rem",
+              fontWeight: "700",
+              color: "white",
+              boxShadow: "0 8px 25px rgba(102, 126, 234, 0.3)"
+            }}>
+              {(officialProfile.name || "U").charAt(0).toUpperCase()}
             </div>
-            <div>
-              <label style={{ display: "block", fontWeight: "500", marginBottom: "0.5rem" }}>
-                {t('profileSection.email')}
-              </label>
-              {isEditingProfile ? (
-                <input
-                  type="email"
-                  value={profileFormData.mobile || ''}
-                  onChange={(e) => handleInputChange('mobile', e.target.value)}
-                  style={{ width: "100%", padding: "0.5rem", border: "1px solid #d1d5db", borderRadius: "4px" }}
-                />
-              ) : (
-                <p style={{ margin: 0, padding: "0.5rem 0" }}>{officialProfile.mobile || 'Not specified'}</p>
-              )}
+
+            <h3 style={{
+              margin: "0 0 0.5rem 0",
+              color: "#1f2937",
+              fontSize: "1.5rem",
+              fontWeight: "600"
+            }}>
+              {officialProfile.name || "Health Official"}
+            </h3>
+
+            <p style={{
+              margin: "0 0 1rem 0",
+              color: "#6b7280",
+              fontSize: "1rem"
+            }}>
+              {officialProfile.username || "HOF001"}
+            </p>
+
+            {/* Status Badge */}
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.5rem 1rem",
+              backgroundColor: "#dcfce7",
+              color: "#166534",
+              borderRadius: "20px",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+              marginBottom: "1.5rem"
+            }}>
+              <div style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                backgroundColor: "#22c55e"
+              }} />
+              Active
             </div>
-            <div>
-              <label style={{ display: "block", fontWeight: "500", marginBottom: "0.5rem" }}>
-                Role
-              </label>
-              <p style={{ margin: 0, padding: "0.5rem 0" }}>{officialProfile.role || 'HEALTH_OFFICER'}</p>
+
+            {/* Quick Stats */}
+            <div style={{
+              padding: "1rem",
+              backgroundColor: "#f8fafc",
+              borderRadius: "12px",
+              border: "1px solid #e5e7eb"
+            }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "0.5rem"
+              }}>
+                <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>Role</span>
+                <span style={{ color: "#1f2937", fontWeight: "600" }}>
+                  {officialProfile.role || "HEALTH_OFFICER"}
+                </span>
+              </div>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>Department</span>
+                <span style={{ color: "#1f2937", fontWeight: "600" }}>
+                  {officialProfile.department || "Health Dept"}
+                </span>
+              </div>
             </div>
-            <div>
-              <label style={{ display: "block", fontWeight: "500", marginBottom: "0.5rem" }}>
-                Username
-              </label>
-              <p style={{ margin: 0, padding: "0.5rem 0" }}>{officialProfile.username || 'Not specified'}</p>
+          </div>
+
+          {/* Details Section */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "2rem",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <h3 style={{
+              margin: "0 0 1.5rem 0",
+              color: "#1f2937",
+              fontSize: "1.25rem",
+              fontWeight: "600",
+              borderBottom: "2px solid #f3f4f6",
+              paddingBottom: "0.75rem"
+            }}>
+              {t('Personal Details')}
+            </h3>
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: "1.5rem"
+            }}>
+              {/* Name Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('Name')}
+                </label>
+                {isEditingProfile ? (
+                  <input
+                    type="text"
+                    name="name"
+                    value={profileFormData.name || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      transition: "border-color 0.2s",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  />
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {officialProfile.name || "Not provided"}
+                  </div>
+                )}
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  {t('Email')}
+                </label>
+                {isEditingProfile ? (
+                  <input
+                    type="email"
+                    name="mobile"
+                    value={profileFormData.mobile || ""}
+                    onChange={handleInputChange}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      border: "2px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      transition: "border-color 0.2s",
+                      outline: "none"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                    onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  />
+                ) : (
+                  <div style={{
+                    padding: "0.75rem",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    color: "#1f2937",
+                    border: "1px solid #e5e7eb"
+                  }}>
+                    {officialProfile.mobile || "Not provided"}
+                  </div>
+                )}
+              </div>
+
+              {/* Username Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  Username
+                </label>
+                <div style={{
+                  padding: "0.75rem",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "8px",
+                  fontSize: "1rem",
+                  color: "#1f2937",
+                  border: "1px solid #e5e7eb"
+                }}>
+                  {officialProfile.username || "Not provided"}
+                </div>
+              </div>
+
+              {/* Role Field */}
+              <div>
+                <label style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                  fontWeight: "500",
+                  fontSize: "0.875rem"
+                }}>
+                  Role
+                </label>
+                <div style={{
+                  padding: "0.75rem",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "8px",
+                  fontSize: "1rem",
+                  color: "#1f2937",
+                  border: "1px solid #e5e7eb"
+                }}>
+                  {officialProfile.role || "HEALTH_OFFICER"}
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div style={{ marginTop: "2rem" }}>
+              <h3 style={{
+                margin: "0 0 1rem 0",
+                color: "#1f2937",
+                fontSize: "1.25rem",
+                fontWeight: "600",
+                borderBottom: "2px solid #f3f4f6",
+                paddingBottom: "0.75rem"
+              }}>
+                Official Information
+              </h3>
+              
+              <div style={{
+                padding: "1rem",
+                backgroundColor: "#f0f9ff",
+                borderRadius: "8px",
+                border: "1px solid #0ea5e9"
+              }}>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "0.5rem"
+                }}>
+                  <span style={{
+                    color: "#374151",
+                    fontWeight: "500",
+                    fontSize: "0.875rem"
+                  }}>
+                    Official ID: 
+                  </span>
+                  <span style={{
+                    color: "#1f2937",
+                    marginLeft: "0.5rem"
+                  }}>
+                    {officialProfile.id || "N/A"}
+                  </span>
+                </div>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <span style={{
+                    color: "#374151",
+                    fontWeight: "500",
+                    fontSize: "0.875rem"
+                  }}>
+                    Department: 
+                  </span>
+                  <span style={{
+                    color: "#1f2937",
+                    marginLeft: "0.5rem"
+                  }}>
+                    {officialProfile.department || "Health Department"}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1163,14 +1418,6 @@ export default function HealthOfficialHome() {
       //   );
       case "search":
         return <SearchSection />;
-      case "workerManagement":
-        return <WorkerManagementSection />;
-      case "reports":
-        return <p>📊 Reports will appear here</p>;
-      case "documents":
-        return <p>📄 Uploaded documents will appear here</p>;
-      case "registrations":
-        return <p>📝 New registrations will appear here</p>;
       case "notifications":
         return <NotificationsSection />;
       case "profile":
@@ -1268,10 +1515,6 @@ export default function HealthOfficialHome() {
           // { key: "qrScan", icon: QrCode, color: "#10b981", label: t('qrScan') },
           { key: "search", icon: Search, color: "#f59e0b", label: t('search') },
           { key: "profile", icon: User, color: "#3b82f6", label: t('profile') },
-          { key: "workerManagement", icon: Users, color: "#10b981", label: t('workerManagement') },
-          { key: "reports", icon: FileText, color: "#3b82f6", label: t('reports') },
-          { key: "documents", icon: Download, color: "#6366f1", label: t('documents') },
-          { key: "registrations", icon: CreditCard, color: "#8b5cf6", label: t('registrations') },
           { key: "notifications", icon: Bell, color: "#ef4444", label: t('notifications'), count: notifications.length }
         ].map(({ key, icon: Icon, color, label, count }) => (
           <button
